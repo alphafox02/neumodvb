@@ -26,7 +26,7 @@ In addition, some python code needs to be installed using `sudo pip3 install <PA
 at least the following packages are needed:
 
 ```bash
-sudo pip3 install mpl_scatter_density regex
+sudo pip3 install mpl_scatter_density
 ```
 
 ```bash
