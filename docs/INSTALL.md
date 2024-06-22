@@ -147,11 +147,12 @@ sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 13
 Make sure to then run sudo update-alternatives --config gcc and sudo update-alternatives --config g++ and select 13 in both cases. 
 Open and edit the neumodvb/CMakeLists.txt file force the right clang version by adding the -16 in the if statement
 
+```bash
 if(USE_CLANG)
   SET (CMAKE_CXX_COMPILER clang++-16)
   SET (CMAKE_C_COMPILER clang-16)
 endif(USE_CLANG)
-
+```
 
 
 #### Ubuntu 20.04.4 LTS ####
