@@ -112,7 +112,7 @@ wget https://github.com/tsduck/tsduck/releases/download/v3.36-3528/tsduck_3.36-3
 sudo apt install ./tsduck_3.36-3528.ubuntu23_amd64.deb
 ```
 
-#### Ubuntu 22.04.1 LTS ####
+#### DragonOS FocalX ####
 
 The latest neumoDVB version may not work anymore because of an outdated libstdc++. You may need to
 upgrade Ubuntu or install an older version of neumoDVB.
@@ -122,14 +122,37 @@ sudo  apt install -y libboost-all-dev libgtk-3-0 libgtk-3-dev curl libcurl4-open
 gettext libexif-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev   python3-configobj python3-cachetools \
 python3-jinja2 python3-pip clang-format python3-sip-dev libconfig-dev libconfig++-dev libdvbcsa-dev  libmpv-dev \
 freeglut3-dev libwxgtk3.0-gtk3-dev  python3-wxgtk-media4.0 python3-wxgtk-webview4.0 python3-wxgtk4.0 python3-scipy \
-clang lsb-core lsb-release python3-regex liblog4cxx12 liblog4cxx-dev freeglut3 fmt fmt-dev espeak
+clang lsb-core lsb-release python3-regex liblog4cxx12 liblog4cxx-dev freeglut3 espeak
 ```
 In addition, some python code needs to be installed using `sudo pip3 install <PACKAGE>`;
 at least the following packages are needed:
 
 ```bash
-sudo pip3 install mpl_scatter_density
+sudo pip3 install mpl_scatter_density regex
 ```
+
+```bash
+wget https://apt.llvm.org/llvm.sh
+chmod +x llvm.sh
+sudo ./llvm.sh 16
+sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-16 100
+sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-16 100
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+sudo apt-get update -y
+sudo apt-get install gcc-13
+sudo apt-get install g++-13
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 13
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 13
+```
+Make sure to then run sudo update-alternatives --config gcc and sudo update-alternatives --config g++ and select 13 in both cases. 
+Open and edit the neumodvb/CMakeLists.txt file force the right clang version by adding the -16 in the if statement
+
+if(USE_CLANG)
+  SET (CMAKE_CXX_COMPILER clang++-16)
+  SET (CMAKE_C_COMPILER clang-16)
+endif(USE_CLANG)
+
+
 
 #### Ubuntu 20.04.4 LTS ####
 
