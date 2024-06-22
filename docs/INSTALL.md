@@ -22,7 +22,7 @@ python3-jinja2 python3-pip clang-format python3-sip-dev libconfig-dev libconfig+
 freeglut3-dev libwxgtk3.0-gtk3-dev  python3-wxgtk-media4.0 python3-wxgtk-webview4.0 python3-wxgtk4.0 python3-scipy \
 clang lsb-core lsb-release python3-regex liblog4cxx12 liblog4cxx-dev freeglut3 espeak
 ```
-** During the above step, you will notice that libcurl4-openssl-dev well uninstall libcurl4-gnutls-dev. The package that it uninstalled may cause an issue elsewhere. It seems possible to immediately reinstall libcurl-gnutls-dev before proceeding (it will complain). I'll have to see about getting some help evaluating if the older package can be used. **
+** During the above step, you will notice that libcurl4-openssl-dev uninstalls libcurl4-gnutls-dev. This may cause an issue elsewhere. It seems possible to immediately reinstall libcurl-gnutls-dev before proceeding (it will complain). I'll have to see about getting some help evaluating if the older package can be used. **
 
 In addition, some python code needs to be installed using `sudo pip3 install <PACKAGE>`;
 at least the following packages are needed:
