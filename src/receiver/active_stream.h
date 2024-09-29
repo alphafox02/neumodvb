@@ -63,7 +63,6 @@ struct pid_with_use_count_t {
 
 struct subscription_options_t;
 class active_adapter_t;
-class epoll_tx1;
 
 class stream_reader_t : public std::enable_shared_from_this<stream_reader_t> {
 	constexpr static  std::chrono::duration data_timeout = 10000ms; //in ms

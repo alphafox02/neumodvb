@@ -1208,3 +1208,18 @@ int active_adapter_t::tune_dvbc_or_dvbt<chdb::dvbc_mux_t>(const chdb::dvbc_mux_t
 template
 int active_adapter_t::tune_dvbc_or_dvbt<chdb::dvbt_mux_t>(const chdb::dvbt_mux_t& mux, subscription_options_t tune_options,
 																						 bool user_requested, subscription_id_t subscription_id);
+
+
+/*
+running mux subscription is released
+lnb_activate calls request_positioner_control, which erases frontend reserved_mux (bad)
+then calls si.read_and_process_data_for_fd which goes wrong because of the erased mux
+
+instead active_adapter_t::reset should be called (perhaps only if no tone needs to be set: what happens with small
+interruptions of tone?
+
+lnb_activate should only be called if no mux is running
+if a mux is running some permission bits in tune_pars in fe should be changed
+perhaps retuning should be forced?
+
+ */

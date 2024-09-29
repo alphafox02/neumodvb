@@ -205,6 +205,7 @@ static int get_frontend_names_dvapi(const adapter_no_t adapter_no, fe_state_t& t
 	t.dbfe.supports.blindscan = false;
 	t.dbfe.supports.spectrum_sweep = false;
 	t.dbfe.supports.spectrum_fft = false;
+	t.dbfe.supports.bbframes = false;
 	return 0;
 }
 
@@ -232,6 +233,7 @@ static int get_frontend_names(fe_state_t& t, int adapter_no, int api_version) {
 																		*/
 	}
 	t.dbfe.supports_neumo = 	fe_info.supports_neumo;
+	t.dbfe.supports.bbframes = 	fe_info.supports_bbframes;
 	t.dbfe.card_name = card_name;
 	t.dbfe.card_short_name = card_short_name;
 	for(int i=0; i < fe_info.num_rf_inputs; ++i) {
@@ -1017,7 +1019,7 @@ int dvb_frontend_t::unicable2_tune(const devdb::lnb_t& lnb, const chdb::dvbs_mux
 	//unicable requires sleeping between 2 and 60ms
 	msleep(15);
 	this->sec_status.set_voltage(fefd, SEC_VOLTAGE_13, false /*for_unicable_command*/);
-	//msleep(100);
+	msleep(250);
 	return 0;
 }
 
@@ -1338,6 +1340,12 @@ int dvb_frontend_t::tune_(const devdb::rf_path_t& rf_path, const devdb::lnb_t& l
 
 	cmdseq.add_clear();
 	cmdseq.add(DTV_SET_SEC_CONFIGURED);
+#if 0
+	if(ts.readAccess()->dbfe.supports.bbframes) {
+		dtdebugf("Asking for bbframes\n");
+		cmdseq.add(DTV_OUTPUT_BBFRAMES, 1);
+	}
+#endif
 	if (blindscan) {
 		assert (api_type == api_type_t::NEUMO);
 		cmdseq.add(DTV_ALGORITHM, ALGORITHM_BLIND);

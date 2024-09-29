@@ -29,9 +29,11 @@
 #ifndef UNUSED
 #define UNUSED __attribute__((unused))
 #endif
-void here()
+inline void here()
 {
+#if 0
 	printf("here\n");
+#endif
 }
 
 

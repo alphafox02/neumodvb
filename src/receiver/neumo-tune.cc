@@ -102,6 +102,7 @@ struct options_t {
 	fe_modulation modulation{PSK_8};
 	fe_delivery_system delivery_system{SYS_DVBS2};
 	int pol = 0;
+	bool bbframes_mode{false};
 
 	std::string filename_pattern{"/tmp/%s_a%d_%.3f%c.dat"};
 	std::string pls;
@@ -311,6 +312,9 @@ int options_t::parse_options(int argc, char** argv) {
 								 "DiSEqC command string (C: send committed command; "
 								 "U: send uncommitted command",
 								 true);
+	app.add_option("-b,--bb_frames", bbframes_mode,
+								 "Ask to outputput bbframes encapsulated in mpeg packets",
+								 false);
 	app.add_option("-U,--uncommitted", uncommitted, "Uncommitted switch number (lowest is 0)", true);
 	app.add_option("-C,--committed", committed, "Committed switch number (lowest is 0)", true);
 
@@ -476,7 +480,6 @@ std::tuple<int, int> getinfo(FILE* fpout, int fefd, bool pol_is_v, int allowed_f
 	int dtv_tone_prop = cmdseq.props[i++].u.data;
 	int dtv_stream_id_prop = cmdseq.props[i++].u.data;
 	int dtv_scrambling_sequence_index_prop = cmdseq.props[i++].u.data;
-
 	assert(cmdseq.props[i].u.buffer.len == 32);
 	uint32_t* isi_bitset = (uint32_t*)cmdseq.props[i++].u.buffer.data; // TODO: we can only return 32 out of 256
 																																		 // entries...
@@ -972,6 +975,10 @@ int tune_it(int fefd, int frequency_, bool pol_is_v) {
 			? (options.stream_id < 0 ? -1 : (options.stream_id & 0xff) | options.pls_codes[0])
 			: (options.stream_id < 0 ? -1 : (options.stream_id & 0xff));
 		cmdseq.add(DTV_STREAM_ID, stream_id);
+	}
+	if(options.bbframes_mode) {
+		printf("Ask to output bbframes\n");
+		cmdseq.add(DTV_OUTPUT_BBFRAMES, 1);
 	}
 #if 0
 	if (options.rf_in >=0) {

@@ -986,8 +986,6 @@ void scan_t::on_scan_mux_end(const devdb::fe_t& finished_fe, const chdb::any_mux
 	static int m =0;
 	if (m < scan_stats.active_muxes)
 		m= scan_stats.active_muxes;
-	if( m>=14 && scan_stats.active_muxes <12)
-		printf("here\n");
 	assert(scan_stats.active_muxes>=0);
 
 	bool is_peak = subscription.peak.is_present();

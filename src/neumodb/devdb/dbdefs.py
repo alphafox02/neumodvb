@@ -317,7 +317,8 @@ fe_supports = db_struct(name='fe_supports',
                                   (2, 'bool', 'blindscan', 'false'),
                                   (3, 'bool', 'spectrum_sweep', 'false'),
                                   (5, 'bool', 'spectrum_fft', 'false'),
-                                  (4, 'bool', 'iq', 'false')
+                                  (4, 'bool', 'iq', 'false'),
+                                  (6, 'bool', 'bbframes', 'false')
                 ))
 
 
