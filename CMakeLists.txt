@@ -30,6 +30,9 @@ FetchContent_Declare(fmt
   GIT_TAG f5e54359df4c26b6230fc61d38aa294581393084
   )
 
+# Prevent fmt from being installed system-wide
+set(FMT_INSTALL OFF CACHE BOOL "Disable installation of fmt" FORCE)
+
 execute_process(COMMAND  lsb_release  -c -s OUTPUT_VARIABLE RELEASE)
 string(STRIP "${RELEASE}" RELEASE)
 message(STATUS "xxx=/${RELEASE}/")
