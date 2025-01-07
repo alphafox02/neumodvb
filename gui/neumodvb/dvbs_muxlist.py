@@ -57,7 +57,7 @@ class DvbsMuxTable(NeumoTable):
          CD(key='pls_code', label='Pls\nCode', example ='174526'),
          CD(key='fec', label='FEC', dfn=lambda x: lastdot(x).replace('FEC',''), example='AUTO'),
          CD(key='k.stream_id', label='ISI', basic=True, readonly=True),
-         CD(key='k.t2mi_pid', label='t2mi\npid', readonly=True, dfn = lambda x: x[1] if x[1]>=0 else ''),
+         CD(key='k.t2mi_pid', label='t2mi\npid', basic=True, readonly=True, dfn = lambda x: x[1] if x[1]>=0 else ''),
          CD(key='k.mux_id', label='mux\nid', readonly=True),
          CD(key='c.network_id', label='nid'),
          CD(key='c.ts_id', label='tsid'),
