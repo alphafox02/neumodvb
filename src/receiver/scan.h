@@ -511,7 +511,7 @@ class scanner_t {
 																 const ss::vector_<subscription_id_t>& subscription_ids);
 	bool housekeeping(bool force);
 	subscription_id_t scan_subscription_id_for_scan_id(const chdb::scan_id_t& scan_id);
-
+	void cleanup();
 public:
 	inline void start_idling() {
 		if(!scan_is_idling) {

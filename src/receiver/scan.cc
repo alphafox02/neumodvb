@@ -246,8 +246,26 @@ bool scanner_t::housekeeping(bool force) {
 	}
 	dtdebugf("{:d} bands left to scan; {:d} active", ss.pending_bands, ss.active_bands);
 	dtdebugf("{:d} muxes left to scan; {:d} active", ss.pending_muxes, ss.active_muxes);
+	bool remove_scanner = must_end ? true : (scan_stats_done(ss) || has_timedout());
+	if(remove_scanner) {
+		cleanup();
+	}
+	return remove_scanner;
+}
 
-	return must_end ? true : (scan_stats_done(ss) || has_timedout());
+void scanner_t::cleanup()
+{
+	std::vector<task_queue_t::future_t> futures;
+	auto devdb_wtxn = receiver.devdb.wtxn();
+	//we do not iterate over elements as unsubscribe_scan erases them
+	while(scans.size() >0) {
+		auto it = scans.begin();
+		auto scan_subscription_id = it->first;
+		auto scan_ssptr = receiver.get_ssptr(scan_subscription_id);
+		unsubscribe_scan(futures, devdb_wtxn, scan_ssptr);
+	}
+	devdb_wtxn.commit();
+	wait_for_all(futures);
 }
 
 static void report(const char* msg, ssptr_t finished_ssptr,
@@ -363,8 +381,8 @@ bool scanner_t::on_scan_mux_end(const devdb::fe_t& finished_fe, const chdb::any_
 			dtdebugf("Detected exit condition");
 			must_end = true;
 		}
-
-		bool done = scan_stats_done(scan.get_scan_stats()) || has_timedout();
+		bool timed_out = has_timedout();
+		bool done = scan_stats_done(scan.get_scan_stats()) || timed_out;
 		if(must_end || done) {
 			std::vector<task_queue_t::future_t> futures;
 			auto devdb_wtxn = receiver.devdb.wtxn();
@@ -672,7 +690,7 @@ scan_t::scan_next_peaks(db_txn& chdb_rtxn,
 
 
 	*/
-
+	assert(scan_stats.pending_peaks==0);
 
 	for(auto& [blindscan_key, blindscan]:  blindscans) {
 		bool& skip_sat_band = skip_map[blindscan_key];
@@ -762,6 +780,7 @@ scan_t::scan_next_muxes(db_txn& chdb_rtxn,
 			continue;
 		}
 
+		assert(scan_stats.pending_muxes==0);
 		auto c = mux_t::find_by_scan_status(chdb_rtxn, pass ==0
 																				? scan_status_t::RETRY :
 																				scan_status_t::PENDING, find_type_t::find_geq,
@@ -1654,6 +1673,7 @@ scanner_t::~scanner_t() {
 	}
 	devdb_wtxn.commit();
 	wait_for_all(futures);
+	cleanup();
 }
 
 
