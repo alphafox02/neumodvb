@@ -559,6 +559,7 @@ scan_t::scan_try_peak(db_txn& chdb_rtxn, blindscan_t& blindscan,
 			We try these values instead of the blind scanned ones
 		*/
 		mux = db_mux;
+		mux.k.sat_pos = blindscan_key.sat_pos; //needed because mxu tuning code checks for exact network
 	} else {
 		mux.c.tune_src = tune_src_t::TEMPLATE;
 	}
