@@ -821,6 +821,8 @@ service = db_struct(name ='service',
                             (9, 'boolean_t', 'encrypted', "false"),
                             (10,'boolean_t', 'expired', "false"),
                             (14,'uint16_t', 'video_pid', "0xffff"),
+                            (17, 'boolean_t', 'name_from_sdt'),
+                            (18, 'boolean_t', 'provider_from_sdt'),
                             #variable length data
                             (7, 'ss::string<16>', 'name'),
                             (8, 'ss::string<16>', 'provider'),

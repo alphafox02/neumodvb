@@ -138,8 +138,6 @@ namespace dtdemux {
 		info about all substreams in the program management table
 	*/
 	struct pmt_info_t {
-		ca_info_t get_ca(stored_section_t& s, const descriptor_t& desc, uint16_t stream_pid);
-		void parse_descriptors(stored_section_t& s, pid_info_t& info, bool in_es_loop);
 		uint16_t service_id = 0x00;
 		uint16_t pcr_pid = null_pid;
 		uint16_t video_pid = null_pid;
@@ -167,7 +165,8 @@ namespace dtdemux {
 		ss::vector<service_move_info_t, 4> service_move_descriptors;
 
 		chdb::media_mode_t estimated_media_mode;
-
+		ss::string<16> service_name;
+		ss::string<16> provider_name;
 		pmt_info_t& operator=(const pmt_info_t& other) = default;
 
 		bool has_ca_pid(uint16_t ca_pid) const;
@@ -179,6 +178,8 @@ namespace dtdemux {
 		ss::vector<chdb::language_code_t, 8> audio_languages() const;
 		ss::vector<chdb::language_code_t, 8> subtitle_languages() const;
 
+		ca_info_t get_ca(stored_section_t& s, const descriptor_t& desc, uint16_t stream_pid);
+		void parse_descriptors(stored_section_t& s, pmt_info_t& pmt, pid_info_t& info, bool in_es_loop);
 		std::tuple<const pid_info_t*,chdb::language_code_t>
 		best_audio_language(const ss::vector_<chdb::language_code_t>&prefs) const;
 

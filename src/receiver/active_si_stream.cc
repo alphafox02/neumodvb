@@ -2958,9 +2958,20 @@ void active_si_stream_t::save_pmts(db_txn& wtxn)
 		auto service = c.is_valid() ? c.current() : service_t{};
 		if(! c.is_valid()) {
 			service.k = service_key;
-			service.name.format("Service {}:{:d}", mux_desc, pat_service.pmt.service_id);
 		}
+		if(!service.name_from_sdt) {
+			if (pat_service.pmt.service_name.size()>0)
+				service.name = pat_service.pmt.service_name;
+			else
+				service.name.format("Service {}:{:d}", mux_desc, pat_service.pmt.service_id);
+		}
+		if (!service.provider_from_sdt) {
+			if (pat_service.pmt.provider_name.size()>0)
+				service.provider = pat_service.pmt.provider_name;
+		}
+
 		auto new_service = service;
+
 		std::visit([&](auto&mux) {
 			auto pol = get_member(mux, pol, chdb::fe_polarisation_t::NONE);
 			new_service.frequency = mux.frequency;

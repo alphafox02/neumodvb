@@ -465,8 +465,10 @@ namespace dtdemux {
 		ret.media_mode = chdb::media_mode_for_service_type(ret.service_type);
 		if (get_fields<dvb_text_t>(ret.provider))
 			return -1;
+		ret.provider_from_sdt = true;
 		if (get_fields<dvb_text_t>(ret.name))
 			return -1;
+		ret.name_from_sdt = true;
 		return 0;
 	}
 
@@ -957,7 +959,7 @@ namespace dtdemux {
 	in_es_loop indicates if we are parsing descriptors for the overall program
 	or for elementary streams in it
 */
-	void pmt_info_t::parse_descriptors(stored_section_t& s, pid_info_t& info, bool in_es_loop) {
+	void pmt_info_t::parse_descriptors(stored_section_t& s, pmt_info_t& pmt, pid_info_t& info, bool in_es_loop) {
 		uint16_t program_info_len = s.get<uint16_t>();
 		program_info_len &= 0x0fff;
 
@@ -1079,7 +1081,20 @@ namespace dtdemux {
 
 					s.skip(_desc.len - 1); // we already read 1 byte
 				}
-			} break;
+			}
+				break;
+			case SI::ServiceDescriptorTag: {
+				if (s.available() < 2) {
+					s.throw_bad_data();
+					return ;
+				}
+				chdb::service_t service;
+				s.get_fields<service_descriptor_t>(service);
+				if(service.name.size()>0)
+					pmt.service_name = service.name;
+				if(service.provider.size()>0)
+					pmt.provider_name = service.provider;
+			}
 			case SI::DataBroadcastDescriptorTag:
 			case SI::ApplicationSignallingDescriptorTag:
 			case SI::AncillaryDataDescriptorTag:
@@ -1272,8 +1287,7 @@ namespace dtdemux {
 
 		pid_info_t info;
 		const bool in_es_loop = false;
-		pmt.parse_descriptors(*this, info,
-													in_es_loop);
+		pmt.parse_descriptors(*this, pmt, info, in_es_loop);
 		pmt.estimated_media_mode = (info.t2mi_stream_id >=0) ? media_mode_t::T2MI : media_mode_t::UNKNOWN;
 		// elementary stream loop
 		while (this->available() > 4) { // 4 is the crc
@@ -1289,7 +1303,7 @@ namespace dtdemux {
 
 			pid_info_t info(stream_pid, stream_type);
 			const bool in_es_loop = true;
-			pmt.parse_descriptors(*this, info, in_es_loop);
+			pmt.parse_descriptors(*this, pmt, info, in_es_loop);
 
 			if (stream_type::is_video(stream_type::stream_type_t(stream_type))) {
 				pmt.video_pid = stream_pid;
