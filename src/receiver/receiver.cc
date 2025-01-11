@@ -1967,7 +1967,7 @@ receiver_thread_t::scan_muxes(std::vector<task_queue_t::future_t>& futures, ss::
 															ssptr_t ssptr) {
 	auto scanner = get_scanner();
 	if (!scanner) {
-		scanner = std::make_unique<scanner_t>(*this, max_num_subscriptions, max_idle_time);
+		scanner = std::make_shared<scanner_t>(*this, max_num_subscriptions, max_idle_time);
 		set_scanner(scanner);
 	}
 	auto subscription_id = ssptr->get_subscription_id();
@@ -1995,7 +1995,7 @@ receiver_thread_t::scan_bands(std::vector<task_queue_t::future_t>& futures,
 															ssptr_t ssptr) {
 	auto scanner = get_scanner();
 	if (!scanner) {
-		scanner = std::make_unique<scanner_t>(*this, max_num_subscriptions, max_idle_time);
+		scanner = std::make_shared<scanner_t>(*this, max_num_subscriptions, max_idle_time);
 		set_scanner(scanner);
 	}
 
