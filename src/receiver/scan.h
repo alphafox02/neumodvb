@@ -474,7 +474,11 @@ class scanner_t {
 	friend class scan_t;
 	receiver_thread_t& receiver_thread;
 	receiver_t& receiver;
+	const std::chrono::seconds max_idle_time;
 	time_t scan_start_time{-1};
+	steady_time_t scan_idling_time{};
+	bool scan_is_idling{false};
+
 	steady_time_t last_house_keeping_time{steady_clock_t::now()};
 	int max_num_subscriptions{std::numeric_limits<int>::max()};
 	bool must_end = false;
@@ -509,7 +513,31 @@ class scanner_t {
 	subscription_id_t scan_subscription_id_for_scan_id(const chdb::scan_id_t& scan_id);
 
 public:
-	scanner_t(receiver_thread_t& receiver_thread_, int max_num_subscriptions);
+	inline void start_idling() {
+		if(!scan_is_idling) {
+			auto now = steady_clock_t::now();
+			dtdebugf("Starting idle timeout");
+			scan_is_idling = true;
+			scan_idling_time = now;
+		}
+	}
+
+	inline void stop_idling() {
+		dtdebugf("Stop idling");
+		scan_is_idling = false;
+	}
+
+	inline bool has_timedout() {
+		auto now = steady_clock_t::now();
+		bool timedout = scan_is_idling && (now - scan_idling_time) >= max_idle_time;
+		if(timedout) {
+			dtdebugf("Scan has timed out");
+		}
+		return timedout;
+	}
+
+	scanner_t(receiver_thread_t& receiver_thread_, int max_num_subscriptions,
+						const std::chrono::seconds& max_idle_time);
 
 	~scanner_t();
 

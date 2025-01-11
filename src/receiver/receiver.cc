@@ -635,8 +635,9 @@ subscription_id_t receiver_thread_t::cb_t::scan_muxes(ss::vector_<mux_t>& muxes,
 		}
 	}
 	int max_num_subscriptions = 100;
+	std::chrono::seconds max_idle_time = 30s;
 	auto ret = this->receiver_thread_t::scan_muxes(futures, muxes, tune_options,
-																								 max_num_subscriptions, ssptr);
+																								 max_num_subscriptions, max_idle_time, ssptr);
 	bool error = wait_for_all(futures);
 	if (error) {
 		dterrorf("Unhandled error in scan_mux");
@@ -660,9 +661,10 @@ subscription_id_t receiver_thread_t::cb_t::scan_spectral_peaks(
 	}
 	bool scan_newly_found_muxes = true;
 	int max_num_subscriptions = 100;
+	std::chrono::seconds max_idle_time = 30s;
 	auto ret = this->receiver_thread_t::scan_spectral_peaks(futures, rf_path, peaks, spectrum_key,
 																													scan_newly_found_muxes,
-																													max_num_subscriptions, ssptr);
+																													max_num_subscriptions, max_idle_time, ssptr);
 	error = wait_for_all(futures);
 	if (error) {
 		dterrorf("Unhandled error in scan_mux");
@@ -692,10 +694,11 @@ subscription_id_t receiver_thread_t::cb_t::scan_bands(
 		}
 	}
 	int max_num_subscriptions = 100;
-
+	std::chrono::seconds max_idle_time = 30s;
 	assert(tune_options.need_spectrum);
 	auto ret =  this->receiver_thread_t::scan_bands(futures, sats, pols, tune_options,
-																												max_num_subscriptions, ssptr);
+																									max_num_subscriptions, max_idle_time,
+																									ssptr);
 
 	auto error = wait_for_all(futures);
 	if (error) {
@@ -1960,10 +1963,11 @@ subscription_id_t
 receiver_thread_t::scan_muxes(std::vector<task_queue_t::future_t>& futures, ss::vector_<mux_t>& muxes,
 															const subscription_options_t& tune_options,
 															int max_num_subscriptions,
+															const std::chrono::seconds& max_idle_time,
 															ssptr_t ssptr) {
 	auto scanner = get_scanner();
 	if (!scanner) {
-		scanner = std::make_unique<scanner_t>(*this, max_num_subscriptions);
+		scanner = std::make_unique<scanner_t>(*this, max_num_subscriptions, max_idle_time);
 		set_scanner(scanner);
 	}
 	auto subscription_id = ssptr->get_subscription_id();
@@ -1987,11 +1991,11 @@ receiver_thread_t::scan_bands(std::vector<task_queue_t::future_t>& futures,
 															const ss::vector_<chdb::sat_t>& sats,
 															const ss::vector_<chdb::fe_polarisation_t>& pols,
 															const subscription_options_t& tune_options,
-															int max_num_subscriptions,
+															int max_num_subscriptions, const std::chrono::seconds& max_idle_time,
 															ssptr_t ssptr) {
 	auto scanner = get_scanner();
 	if (!scanner) {
-		scanner = std::make_unique<scanner_t>(*this, max_num_subscriptions);
+		scanner = std::make_unique<scanner_t>(*this, max_num_subscriptions, max_idle_time);
 		set_scanner(scanner);
 	}
 
@@ -2029,12 +2033,14 @@ receiver_thread_t::scan_spectral_peaks(std::vector<task_queue_t::future_t>& futu
 																			 const devdb::rf_path_t& rf_path,
 																			 ss::vector_<chdb::spectral_peak_t>& peaks,
 																			 const statdb::spectrum_key_t& spectrum_key,
-																			 bool scan_found_muxes, int max_num_subscriptions,
+																			 bool scan_found_muxes,
+																			 int max_num_subscriptions,
+																			 const std::chrono::seconds& max_idle_time,
 																			 ssptr_t scan_ssptr) {
 	auto scanner = get_scanner();
 
 	if (!scanner){
-		scanner = std::make_shared<scanner_t>(*this, max_num_subscriptions);
+		scanner = std::make_shared<scanner_t>(*this, max_num_subscriptions, max_idle_time);
 		set_scanner(scanner);
 	}
 	auto subscription_id = scan_ssptr->get_subscription_id();
@@ -2462,17 +2468,17 @@ receiver_thread_t::cb_t::scan_muxes<chdb::dvbt_mux_t>(ss::vector_<chdb::dvbt_mux
 template subscription_id_t
 receiver_thread_t::scan_muxes(std::vector<task_queue_t::future_t>& futures, ss::vector_<chdb::dvbs_mux_t>& muxes,
 															const subscription_options_t& tune_options,
-															int max_num_subscriptions,
+															int max_num_subscriptions, const std::chrono::seconds& max_idle_time,
 															ssptr_t ssptr);
 
 
 template subscription_id_t
 receiver_thread_t::scan_muxes(std::vector<task_queue_t::future_t>& futures, ss::vector_<chdb::dvbc_mux_t>& muxes,
 															const subscription_options_t& tune_options,
-															int max_num_subscriptions,
+															int max_num_subscriptions, const std::chrono::seconds& max_idle_time,
 															ssptr_t ssptr);
 template subscription_id_t
 receiver_thread_t::scan_muxes(std::vector<task_queue_t::future_t>& futures, ss::vector_<chdb::dvbt_mux_t>& muxes,
 															const subscription_options_t& tune_options,
-															int max_num_subscriptions,
+															int max_num_subscriptions, const std::chrono::seconds& max_idle_time,
 															ssptr_t ssptr);
