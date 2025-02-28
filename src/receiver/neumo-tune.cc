@@ -1114,7 +1114,7 @@ int diseqc(int fefd, bool pol_is_v, bool band_is_high) {
 				// committed
 				if (tone_off() < 0)
 					return -1;
-				msleep(must_pause ? 200 : 30);
+				msleep(must_pause ? (200+200) : (30+200));
 				assert(options.pol == 1 || options.pol == 2);
 				int extra = (pol_is_v ? 0 : 2) | (band_is_high ? 1 : 0);
 				ret = send_diseqc_message(fefd, 'C', options.committed * 4, extra, repeated);
@@ -1130,7 +1130,7 @@ int diseqc(int fefd, bool pol_is_v, bool band_is_high) {
 				if (tone_off() < 0)
 					return -1;
 
-				msleep(must_pause ? 200 : 30);
+				msleep(must_pause ? (200+200) : (30+200));
 				ret = send_diseqc_message(fefd, 'U', options.uncommitted, 0, repeated);
 				if (ret < 0) {
 					printf("Sending Uncommitted DiseqC message failed");

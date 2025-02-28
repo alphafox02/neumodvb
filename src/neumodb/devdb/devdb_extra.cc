@@ -1526,9 +1526,9 @@ void devdb::lnb::update_lnb_adapter_fields(db_txn& devdb_wtxn, const devdb::fe_t
 
 
 /*
-	Se the can_be_used status on all lnbs and lnb connections depending on the
+	Set the can_be_used status on all lnbs and lnb connections depending on the
 	currently available fes. If update_for_fe is set, then only consider lnb connections
-	for the specific fe. This is called when fe's are added/removed at run time
+	for the specific fe. This is called when fes are added/removed at runime
  */
 void devdb::lnb::update_lnbs(db_txn& devdb_wtxn, const devdb::fe_t* update_for_fe) {
 
