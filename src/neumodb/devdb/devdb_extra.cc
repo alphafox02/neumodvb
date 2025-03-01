@@ -1572,7 +1572,6 @@ void devdb::lnb::update_lnbs(db_txn& devdb_wtxn, const devdb::fe_t* update_for_f
 				assert(fe.rf_inputs.contains(conn.rf_input));
 				assert (conn.card_mac_address == fe.card_mac_address);
 				auto card_no = fe.card_no;
-				assert (fe.card_no>=0);
 				if (card_no >=0) {
 					name.format("C{:d}#{:d} {:s}", card_no, conn.rf_input, fe.card_short_name);
 				} else {
