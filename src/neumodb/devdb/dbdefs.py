@@ -156,13 +156,13 @@ lnb_key = db_struct(name='lnb_key',
 
 
 rf_path = db_struct(name='rf_path',
-                        fname = 'fedev',
+                    fname = 'fedev',
                     db = db,
                     type_id= lord('TC'),
                     version = 1,
                     fields = ((1, 'lnb_key_t', 'lnb'),
                               (2, 'int64_t', 'card_mac_address', -1), #Unique for each card
-                              (3, 'int8_t', 'rf_input', -1),
+                              (3, 'int8_t', 'rf_input', -1)
                               )
                     )
 

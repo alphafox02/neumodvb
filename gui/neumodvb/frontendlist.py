@@ -117,7 +117,7 @@ class FrontendTable(NeumoTable):
     datetime_fn =  lambda x: datetime.datetime.fromtimestamp(x[1], tz=tz.tzlocal()).strftime("%Y-%m-%d %H:%M:%S")
     all_columns = \
         [CD(key='adapter_name',  label='adapter', basic=True, no_combo=True, readonly=True,
-            example="TurboSight TBS 6916X #12 "),
+            dfn = lambda x: x[1].split(" ")[0], example="A18 "),
          #CD(key='adapter_no',  label='Adap', basic=True, readonly=True),
          CD(key='k.frontend_no',  label='fe', basic=True, readonly=True),
          CD(key='card_no',  label='card#', basic=True, readonly=False, sfn=card_no_sfn),
@@ -133,9 +133,8 @@ class FrontendTable(NeumoTable):
          CD(key='card_mac_address',  label='CARD MAC', basic=True, no_combo=True, readonly=True,
             dfn=mac_fn, example=" AA:BB:CC:DD:EE:FF "),
          CD(key='k.adapter_mac_address',  label='ADAP MAC', basic=True, no_combo=True, readonly=True, dfn=mac_fn, example=" AA:BB:CC:DD:EE:FF "),
-         CD(key='card_address',  label='Bus', basic=True, example=" 0000:03:00.0 "),
-         CD(key='present',  label='present', basic=True, dfn=bool_fn, readonly=True),
-         CD(key='can_be_used',  label='available', basic=True, dfn=bool_fn, readonly=True),
+         CD(key='present',  label='pres\nent', basic=True, dfn=bool_fn, readonly=True),
+         CD(key='can_be_used',  label='avail\nable', basic=True, dfn=bool_fn, readonly=True),
          CD(key='supports.multistream',  label='MIS', basic=True, dfn=bool_fn, readonly=True),
          CD(key='supports.blindscan',  label='blind\n-scan', basic=True, dfn=bool_fn, readonly=True),
          CD(key='supports.spectrum_sweep',  label='spec\nsweep', basic=True, dfn=bool_fn, readonly=True),
