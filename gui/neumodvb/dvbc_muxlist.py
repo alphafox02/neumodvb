@@ -87,7 +87,7 @@ class DvbcMuxTable(NeumoTable):
                          screen_getter = screen_getter,
                          initial_sorted_column = initial_sorted_column, **kwds)
 
-    def __save_record__(self, txn, record):
+    def __save_record__(self, txn, record, old_record):
         pychdb.dvbc_mux.make_unique_if_template(txn, record)
         pychdb.put_record(txn, record)
         return record

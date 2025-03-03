@@ -98,7 +98,7 @@ class DishTable(NeumoTable):
             self.fe_screen =pydevdb.fe.screen(txn, sort_order=sort_order)
             self.aux_screens = [ self.fe_screen]
 
-    def __save_record__(self, txn, dish):
+    def __save_record__(self, txn, dish, old_record):
         pydevdb.put_record(txn, dish)
         return dish
 

@@ -95,7 +95,7 @@ class DvbsMuxTable(NeumoTable):
                          screen_getter = screen_getter,
                          initial_sorted_column = initial_sorted_column, **kwds)
 
-    def __save_record__(self, txn, record):
+    def __save_record__(self, txn, record, old_record):
         pychdb.dvbs_mux.make_unique_if_template(txn, record)
         pychdb.put_record(txn, record) #this will overwrite any mux with given ts_id even if frequency is very wrong
         return record

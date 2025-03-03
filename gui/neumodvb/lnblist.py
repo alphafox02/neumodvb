@@ -164,7 +164,7 @@ class LnbTable(NeumoTable):
             self.fe_screen =pydevdb.fe.screen(txn, sort_order=sort_order)
             self.aux_screens = [ self.fe_screen]
 
-    def __save_record__(self, txn, lnb):
+    def __save_record__(self, txn, lnb, old_record):
         if len(lnb.networks) == 0:
             if lnb.usals_pos != pychdb.sat.sat_pos_none:
                 cont = ShowOkCancel("Add network?",

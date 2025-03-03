@@ -82,7 +82,7 @@ class StreamTable(NeumoTable):
                                    field_matchers=matchers, match_data = match_data)
         self.screen = screen_if_t(screen, self.sort_order==2)
 
-    def __save_record__(self, txn, record):
+    def __save_record__(self, txn, record, old_record):
         dtdebug(f'saving {record.stream_id}')
         #Caller has deleted record (in case key would have changed)
         #and counts on us to save record in all cases.

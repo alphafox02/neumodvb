@@ -92,7 +92,7 @@ class DvbsMuxTable(NeumoTable):
                          record_t =  pychdb.dvbs_mux.dvbs_mux,
                          initial_sorted_column = initial_sorted_column, **kwds)
 
-    def __save_record__(self, txn, record):
+    def __save_record__(self, txn, record, old_record):
         return record
 
     def screen_getter_xxx(self, txn, sort_order):

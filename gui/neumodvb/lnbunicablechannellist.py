@@ -107,7 +107,7 @@ class LnbunicableTable(NeumoTable):
         """
         self.screen = screen_if_t(lnbunicable_screen_t(self), self.sort_order==2)
 
-    def __save_record__(self, wtxn, record):
+    def __save_record__(self, wtxn, record, old_record):
 
         dtdebug(f'UNICABLE_CHANNELS: {len(self.lnb.unicable_channels)}')
         changed = pydevdb.lnb.add_or_edit_unicable_channel(wtxn, self.lnb, record)

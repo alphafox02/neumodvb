@@ -155,7 +155,7 @@ class dvbdev_monitor_t : public adaptermgr_t {
 	void on_delete_dir(struct inotify_event* event);
 
 	void disable_missing_adapters();
-	bool renumber_cards();
+	bool renumber_cards_and_cables();
 	void update_lnbs(const devdb::fe_t* update_for_fe);
 	void update_lnbs(db_txn& devdb_wtxn, const devdb::fe_t* update_for_fe);
 
@@ -486,7 +486,7 @@ int dvbdev_monitor_t::start() {
 	}
 
 	discover_adapters();
-	renumber_cards();
+	renumber_cards_and_cables();
 	disable_missing_adapters();
 	update_lnbs(nullptr);
 	this->commit_txns();
@@ -554,35 +554,53 @@ void dvbdev_monitor_t::disable_missing_adapters() {
 	devdb_wtxn.commit(); //commit child transaction
 }
 
-bool dvbdev_monitor_t::renumber_cards() {
+
+bool dvbdev_monitor_t::renumber_cards_and_cables() {
 	using namespace chdb;
-	std::map<card_mac_address_t, int> card_numbers;
+	std::map<card_mac_address_t, int> card_nos;
+	std::map<std::tuple<card_mac_address_t, int>, int> cable_nos;
 	auto devdb_wtxn = this->devdb_wtxn();
 	auto c = devdb::find_first<devdb::fe_t>(devdb_wtxn);
 	auto saved = c.clone();
 	bool changed = false;
-	std::bitset<128> numbers_in_use;
+	std::bitset<128> card_nos_in_use;
+	std::bitset<128> cable_nos_in_use;
+	/*
+		identify which card_nos and cable_nos are already in use
+	 */
 	for (auto fe : c.range()) {
-		auto card_no = std::min((int)fe.card_no, ((int) numbers_in_use.size()-1));
+		auto card_no = std::min((int)fe.card_no, ((int) card_nos_in_use.size()-1));
 		/*
 			try_emplace will fail if a number is already associated with the mac address
 			On the other hand, if a number is not yet known for the macaddress, but fe.card_no
 			matches that for another card, then the data would be invalid and we store a -1
 			for this macaddress (and fix it below)
 		 */
-		card_numbers.try_emplace((card_mac_address_t)fe.card_mac_address,
-														 (card_no < 0 || numbers_in_use[card_no]) ? -1 : card_no);
+		card_nos.try_emplace((card_mac_address_t)fe.card_mac_address,
+												 (card_no < 0 || card_nos_in_use[card_no]) ? -1 : card_no);
+
+		for(int idx=0; idx < fe.rf_inputs.size(); ++idx) {
+			auto rf_input = fe.rf_inputs[idx];
+			if(idx >= fe.cable_nos.size())
+				fe.cable_nos.push_back(-1);
+			auto cable_no = std::min((int)fe.cable_nos[idx], ((int) cable_nos_in_use.size()-1));
+			cable_nos.try_emplace({(card_mac_address_t)fe.card_mac_address, rf_input},
+														(cable_no < 0 || cable_nos_in_use[cable_no]) ? -1 : cable_no);
+			if (cable_no >=0) {
+				cable_nos_in_use[cable_no] = true;
+			}
+		}
 		if(fe.card_no <0)
 			continue;
-		numbers_in_use[fe.card_no] = true;
+		card_nos_in_use[fe.card_no] = true;
 	}
 
 
-	auto next_card_no = [&] {
+	auto next_no = [&](auto& bitset_) {
 		int ret=0;
-		for(int n = 0; n < (int)numbers_in_use.size(); ++n) {
-			if(!numbers_in_use[n]) {
-				numbers_in_use[n] =  true;
+		for(int n = 0; n < (int)bitset_.size(); ++n) {
+			if(!bitset_[n]) {
+				bitset_[n] =  true;
 				return ret;
 			}
 			ret++;
@@ -592,23 +610,43 @@ bool dvbdev_monitor_t::renumber_cards() {
 
 	/*
 		Assign a card number to any card which does not yet have one.
-	 */
-	for(auto& [card_mac_address, card_no]: card_numbers ) {
+	*/
+	for(auto& [card_mac_address, card_no]: card_nos ) {
 			if (card_no == -1)
-				card_no = next_card_no();
+				card_no = next_no(card_nos_in_use);
+	}
+
+	/*
+		Assign a cable_no to any card input which does not yet have one.
+	 */
+	for(auto& [idx, cable_no]: cable_nos ) {
+		if (cable_no == -1)
+			cable_no = next_no(cable_nos_in_use);
 	}
 
 	/*
 		Update all dbfe records in the database when card numbers have changed.
-	 */
+	*/
 	c = saved;
+	bool any_change{false};
 	for (auto dbfe : c.range()) {
-		auto card_no = card_numbers[(card_mac_address_t)dbfe.card_mac_address];
+		auto card_no = card_nos[(card_mac_address_t)dbfe.card_mac_address];
 		assert(card_no >= 0);
 		if (card_no != dbfe.card_no) {
 			dbfe.card_no = card_no;
 			changed = true;
+		}
+		for (int idx=0; idx < dbfe.rf_inputs.size(); ++idx) {
+			auto rf_input = dbfe.rf_inputs[idx];
+			int cable_no= cable_nos[{(card_mac_address_t)dbfe.card_mac_address, rf_input}];
+			if (cable_no != dbfe.cable_nos[idx]) {
+				dbfe.cable_nos[idx] = cable_no;
+				changed = true;
+			}
+		}
+		if(changed) {
 			put_record(devdb_wtxn, dbfe);
+			any_change = true;
 		}
 		auto [it, found] = find_in_safe_map_with_owner_read_ref(
 			frontends, std::tuple{(adapter_no_t)dbfe.adapter_no, (frontend_no_t)dbfe.k.frontend_no});
@@ -616,6 +654,7 @@ bool dvbdev_monitor_t::renumber_cards() {
 			auto& fe =*it->second;
 			auto w = fe.ts.writeAccess();
 			w->dbfe.card_no = dbfe.card_no;
+			w->dbfe.cable_nos = dbfe.cable_nos;
 		}
 	}
 	devdb_wtxn.commit(); //commit child transaction
@@ -628,25 +667,25 @@ void dvbdev_monitor_t::renumber_card(int old_number, int new_number) {
 	auto devdb_wtxn = this->devdb_wtxn();
 	auto c = devdb::find_first<devdb::fe_t>(devdb_wtxn);
 	auto saved = c.clone();
-	std::bitset<128> numbers_in_use;
+	std::bitset<128> card_nos_in_use;
 
 	if(old_number == new_number)
 		return;
 
 	for (auto dbfe : c.range()) {
-		auto card_no = std::min((int)dbfe.card_no, ((int) numbers_in_use.size()-1));
+		auto card_no = std::min((int)dbfe.card_no, ((int) card_nos_in_use.size()-1));
 		card_numbers.try_emplace((card_mac_address_t)dbfe.card_mac_address,
-														 (card_no < 0 || numbers_in_use[card_no]) ? -1 : card_no);
+														 (card_no < 0 || card_nos_in_use[card_no]) ? -1 : card_no);
 		if(dbfe.card_no <0)
 			continue;
-		numbers_in_use[dbfe.card_no] = true;
+		card_nos_in_use[dbfe.card_no] = true;
 	}
 
 	auto next_card_no = [&] {
 		int ret=0;
-		for(int n = 0; n < (int)numbers_in_use.size(); ++n) {
-			if(!numbers_in_use[n]) {
-				numbers_in_use[n] =  true;
+		for(int n = 0; n < (int)card_nos_in_use.size(); ++n) {
+			if(!card_nos_in_use[n]) {
+				card_nos_in_use[n] =  true;
 				return ret;
 			}
 			ret++;
@@ -657,7 +696,7 @@ void dvbdev_monitor_t::renumber_card(int old_number, int new_number) {
 	c =saved;
 
 	int next = -1;
-	if (numbers_in_use[new_number]) {
+	if (card_nos_in_use[new_number]) {
 		next = next_card_no();
 	}
 

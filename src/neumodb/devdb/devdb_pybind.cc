@@ -103,6 +103,15 @@ static void export_lnb_extra(py::module& m) {
 		;
 }
 
+static void export_cable_extra(py::module& m) {
+	auto mm = py::reinterpret_borrow<py::module>(m.attr("cable"));
+	using namespace devdb;
+	mm.def("update_cable", &cable::update_cable,
+				 "Update a cable record and update corresponding lnbs",
+				 py::arg("devdb_wtxn"), py::arg("cable"), py::arg("old_cable"))
+		;
+}
+
 void export_subscribe_options(py::module& m) {
 	py::class_<subscription_options_t, tune_options_t>(m, "subscription_options_t")
 		.def(py::init<>( []() { subscription_options_t ret; ret.scan_target = scan_target_t::SCAN_FULL; return ret;}),
@@ -163,6 +172,7 @@ PYBIND11_MODULE(pydevdb, m) {
 	devdb::export_enums(m);
 	devdb::export_structs(m);
 	export_lnb_extra(m);
+	export_cable_extra(m);
 	export_scan_command_extra(m);
 	export_stream_extra(m);
 	export_dish_extra(m);

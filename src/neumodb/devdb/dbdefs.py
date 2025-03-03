@@ -238,6 +238,7 @@ lnb_connection = db_struct(name='lnb_connection',
                           # " " wait for 50ms
                           (11, 'ss::string<16>' , 'tune_string', '"UCP"'),
                           (12,  'ss::string<16>', 'connection_name'),
+                          (16, 'int8_t', 'cable_no', -1)
                 ))
 
 
@@ -375,6 +376,21 @@ fe_subscription = db_struct(name='fe_subscription',
                                      (13, 'ss::vector<subscription_data_t>' , 'subs'),
                 ))
 
+cable = db_struct(name ='cable',
+                  fname = 'fedev',
+                  db = db,
+                  type_id= lord('ci'),
+                  version = 1,
+                  ignore_for_equality_fields = ('mtime',),
+                  primary_key = ('key', ('cable_id', )),
+                  fields = ((1, 'int16_t', 'cable_id', -1), #Unique for each cable
+                            (2, 'ss::string<16>', 'cable_name', ""),
+                            (3, 'int64_t', 'card_mac_address', -1), #Unique for each card
+                            (4, 'int8_t', 'rf_input', -1),
+                            (6, 'ss::string<16>', 'connection_name', ''),
+                            (7, 'ss::vector<lnb_key_t,4>', 'connected_lnb_keys'),
+                            (8, 'time_t', 'mtime')
+                            ))
 
 fe = db_struct(name='fe',
                fname = 'fedev',
@@ -412,6 +428,7 @@ fe = db_struct(name='fe',
                    (17, 'ss::string<64>', 'card_address'),
                    (19, 'ss::vector<chdb::fe_delsys_t>', 'delsys'),
                    (27, 'ss::vector<int8_t>', 'rf_inputs'),
+                   (33, 'ss::vector<int8_t>', 'cable_nos'),
                ))
 
 

@@ -507,7 +507,7 @@ class NeumoTableBase(wx.grid.GridTableBase):
     def new_row(self):
         return None
 
-    def __save_record__(self, txn, record):
+    def __save_record__(self, txn, record, old_record):
         pass
 
     def __delete_record__(self, txn, record):
@@ -712,7 +712,7 @@ class NeumoTable(NeumoTableBase):
                 txn = self.db.wtxn()
                 for l in last:
                     assert l.operation == 'delete'
-                    self.__save_record__(txn, l.oldrecord)
+                    self.__save_record__(txn, l.oldrecord, None)
                 changed = self.screen.update(txn)
                 txn.commit()
                 if changed:
@@ -726,7 +726,7 @@ class NeumoTable(NeumoTableBase):
             elif last.operation == 'replace':
                 assert type(last) is not list
                 txn = self.db.wtxn()
-                self.__save_record__(txn, last.oldrecord)
+                self.__save_record__(txn, last.oldrecord, None)
                 changed = self.screen.update(txn)
                 txn.commit()
                 if changed:
@@ -782,7 +782,7 @@ class NeumoTable(NeumoTableBase):
         else:
             dtdebug(f"SAVE MODIFIED: {op}: {old} {new}")
             self.__delete_record__(txn, old)
-        saved = self.__save_record__(txn, new)
+        saved = self.__save_record__(txn, new, old)
         error = saved is None
         if error:
             txn.commit()
@@ -824,8 +824,6 @@ class NeumoTable(NeumoTableBase):
         txn = self.db.wtxn() if txn is None else txn
         if self.screen.update(txn):
             changed = True
-            if self.do_autosize_rows:
-                self.parent.AutoSizeRows()
         else:
             pass
         if txn is not None:
@@ -834,6 +832,8 @@ class NeumoTable(NeumoTableBase):
 
         self.parent.sync_rows()
         if changed:
+            if self.do_autosize_rows:
+                self.parent.AutoSizeRows()
             self.GetRow.cache_clear()
             rowno = max(min(rows) - 1, 0)
             colno = self.parent.GetGridCursorCol()
@@ -854,7 +854,7 @@ class NeumoTable(NeumoTableBase):
         self.new_rows.add(rowno)
         return rec
 
-    def __save_record__(self, txn, record):
+    def __save_record__(self, txn, record, old_record):
         assert false #must be overridden in derived class
         pass
 
@@ -1109,6 +1109,18 @@ class NeumoGridBase(wx.grid.Grid, glr.GridWithLabelRenderersMixin):
             return changed
         return False
 
+    def invalidate_grid(self):
+        """
+        Force repainting of all rows
+        """
+        self.table.on_screen_changed()
+        self.table.GetRow.cache_clear()
+        if self.table.do_autosize_rows:
+            self.AutoSizeRows()
+        self.OnRefresh(None, None)
+        if self.infow is not None:
+            self.infow.ShowRecord(self.table, self.table.CurrentlySelectedRecord())
+
     def OnTimer(self, evt):
         changed = False
         if False:
@@ -1116,13 +1128,7 @@ class NeumoGridBase(wx.grid.Grid, glr.GridWithLabelRenderersMixin):
                 changed |= self.check_screen_update(screen)
         changed |= self.check_screen_update(self.table.screen)
         if changed:
-            self.table.on_screen_changed()
-            self.table.GetRow.cache_clear()
-            if self.table.do_autosize_rows:
-                self.AutoSizeRows()
-            self.OnRefresh(None, None)
-            if self.infow is not None:
-                self.infow.ShowRecord(self.table, self.table.CurrentlySelectedRecord())
+            self.invalidate_grid()
             return changed
         return False
 

@@ -80,6 +80,7 @@ class neumoMainFrame(mainFrame):
                              'dvbs_muxlist', 'dvbc_muxlist', 'dvbt_muxlist',
                              'lnblist', 'chglist', 'satlist',
                              'frontendlist', 'streamlist', 'statuslist',
+                             'cablelist',
                              'mosaic', 'reclist', 'autoreclist', 'spectrumlist',
                              'dishlist', 'scancommandlist']
 
@@ -449,6 +450,10 @@ class neumoMainFrame(mainFrame):
     def CmdLnbList(self, event):
         dtdebug("CmdLnbList")
         self.ShowPanel(self.lnblist_panel)
+
+    def CmdCableList(self, event):
+        dtdebug("CmdCableList")
+        self.ShowPanel(self.cablelist_panel)
 
     def CmdDishList(self, event):
         dtdebug("CmdDishList")

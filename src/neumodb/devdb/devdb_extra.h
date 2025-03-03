@@ -56,6 +56,7 @@ namespace devdb {
 	int16_t make_unique_id(db_txn& txn, const devdb::lnb_key_t& key);
 	int16_t make_unique_id(db_txn& txn, const devdb::scan_command_t& scan_command);
 	int16_t make_unique_id(db_txn& txn, const devdb::stream_t& streamer);
+	int16_t make_unique_id(db_txn& devdb_rtxn, const devdb::cable_t& cable);
 
 	devdb::lnb_t lnb_for_lnb_id(db_txn& devdb_rtxn, int8_t dish_id, int16_t lnb_id);
 
@@ -149,6 +150,11 @@ namespace devdb {
 			ALL = 0xffff,
 		};
 	};
+};
+
+namespace devdb::cable {
+	void update_cable(db_txn& devdb_wtxn, devdb::cable_t& cable,
+										const std::optional<devdb::cable_t> old_cable);
 };
 
 namespace devdb::lnb {

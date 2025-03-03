@@ -149,6 +149,8 @@ lists_menu = (
     SEP,
     MI("LnbList",_("&LNBs\tShift-Ctrl-L"), ""),
     MI("DishList",_("&Dishes\tShift-Ctrl-D"), ""),
+    MI("CableList",_("&Cables\tShift-Ctrl-Q"), ""),
+    SEP,
     MI("SatList",_("&Satellites\tShift-Ctrl-A"), ""),
     MI("ChgList",_("&Bouquets\tShift-Ctrl-B"), ""),
     SEP,

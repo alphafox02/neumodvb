@@ -42,6 +42,10 @@ static inline int get_id(const devdb::lnb_t& lnb) {
 	return lnb.k.lnb_id;
 }
 
+static inline int get_id(const devdb::cable_t& cable) {
+	return cable.cable_id;
+}
+
 template<typename cursor_t, typename T> static int make_unique_id_helper(cursor_t& c) {
 	int gap_start = 1; // start of a potential gap of unused extra_ids
 	for (const auto& rec : c.range()) {
@@ -79,6 +83,11 @@ int16_t devdb::make_unique_id(db_txn& devdb_rtxn, const devdb::scan_command_t& s
 int16_t devdb::make_unique_id(db_txn& devdb_rtxn, const devdb::stream_t& stream) {
 	auto c = find_first<devdb::stream_t>(devdb_rtxn);
 	return ::make_unique_id_helper<decltype(c), devdb::stream_t>(c);
+}
+
+int16_t devdb::make_unique_id(db_txn& devdb_rtxn, const devdb::cable_t& cable) {
+	auto c = find_first<devdb::cable_t>(devdb_rtxn);
+	return ::make_unique_id_helper<decltype(c), devdb::cable_t>(c);
 }
 
 static inline const char* lnb_type_str(const lnb_key_t& lnb_key) {
@@ -163,6 +172,40 @@ fmt::format_context::iterator
 fmt::formatter<fe_subscription_t>::format(const fe_subscription_t& sub, format_context& ctx) const {
 	return fmt::format_to(ctx.out(), "{:d}.{:d}{:s}-{:d} {:d} use_count={:d} ", sub.frequency/1000, sub.frequency%1000,
 												pol_str(sub.pol), sub.mux_key.stream_id, sub.mux_key.mux_id, sub.subs.size());
+}
+
+inline static ss::string<32> make_connection_name(int card_no, int rf_input, const ss::string_& card_short_name)
+{
+	ss::string<32> ret;
+	if(rf_input >=0) {
+		if (card_no >=0)
+			ret.format("C{:d}#{:d} {:s}", card_no, rf_input, card_short_name.c_str());
+		else
+			ret.format("C??#{:d} {:s}", rf_input, card_short_name.c_str());
+	} else {
+		if (card_no >=0)
+			ret.format("C{:d}#?? {:s}", card_no, card_short_name.c_str());
+		else
+			ret.format("C??#?? {:s}", card_short_name.c_str());
+	}
+	return ret;
+}
+
+inline static ss::string<32> make_connection_name(int card_no, int rf_input, int64_t card_mac_address)
+{
+	ss::string<32> ret;
+	if(rf_input>=0) {
+		if (card_no >=0)
+			ret.format("C{:d}#{:d} {:06x}", card_no, rf_input, card_mac_address);
+		else
+			ret.format("C??#{:d} {:06x}", rf_input, card_mac_address);
+	} else{
+		if (card_no >=0)
+			ret.format("C{:d}#?? {:06x}", card_no, card_mac_address);
+		else
+			ret.format("C??#?? {:06x}", card_mac_address);
+	}
+	return ret;
 }
 
 /*
@@ -780,6 +823,42 @@ bool devdb::lnb::add_or_edit_unicable_channel(db_txn& devdb_txn, devdb::lnb_t& l
 	}
 	return changed;
 }
+
+void devdb::cable::update_cable(db_txn& devdb_wtxn, devdb::cable_t& cable,
+																const std::optional<devdb::cable_t> old_cable_) {
+	using namespace devdb;
+	devdb::cable_t old_cable;
+	if(old_cable_)
+		old_cable = *old_cable_;
+
+	if (cable.cable_id <0) {
+		cable.cable_id = make_unique_id(devdb_wtxn, cable);
+	}
+
+	cable.mtime = time(NULL);
+	put_record(devdb_wtxn, cable);
+	if(old_cable.card_mac_address != cable.card_mac_address ||
+		 old_cable.rf_input != cable.rf_input) {
+		dtdebugf("Rewiring from={} to={}\n", old_cable.connection_name, cable.connection_name);
+		auto c = find_first<lnb_t>(devdb_wtxn);
+		for(auto lnb: c.range()) {
+			bool changed = false;
+			for(auto& c: lnb.connections) {
+				if(c.card_mac_address == old_cable.card_mac_address && c.rf_input == old_cable.rf_input) {
+					c.card_mac_address = cable.card_mac_address;
+					c.rf_input = cable.rf_input;
+					c.connection_name = make_connection_name(c.card_no, c.rf_input, c.card_mac_address);
+					changed = true;
+				}
+			}
+			if(changed) {
+				lnb.mtime = cable.mtime;
+				put_record(devdb_wtxn, lnb);
+			}
+		}
+	}
+}
+
 
 /*
 	Update the database such that lnbs all point to the correct new usals and sat positions.
@@ -1410,85 +1489,6 @@ void devdb::lnb::reset_lof_offset(db_txn& devdb_wtxn, devdb::lnb_t&  lnb)
 	put_record(devdb_wtxn, lnb);
 }
 
-#if 0
-static void invalidate_lnb_adapter_fields(db_txn& devdb_wtxn, devdb::lnb_t& lnb) {
-	ss::string<32> name;
-	name.clear();
-	bool any_change{lnb.can_be_used == true};
-	for (auto& conn: lnb.connections) {
-		if(conn.card_no >=0) {
-			name.format("C{:d}#?? {:06x}", conn.card_no, conn.card_mac_address);
-		} else {
-			name.format("C??#?? {:06x}", conn.card_mac_address);
-		}
-		auto can_be_used =  false;
-		bool changed = (conn.connection_name != name) || (conn.can_be_used != can_be_used);
-		any_change |= changed;
-		if (!changed)
-			continue;
-		conn.connection_name = name;
-		conn.can_be_used = can_be_used;
-	}
-	lnb.can_be_used = false;
-	if(any_change) {
-		dtdebugf("Saving lnb_network: lnb_usals_pos={} cur_sat_pos={}\n", lnb.lnb_usals_pos, lnb.cur_sat_pos);
-		put_record(devdb_wtxn, lnb);
-	}
-}
-#endif
-
-#if 0
-static void update_lnb_adapter_fields(db_txn& devdb_wtxn, devdb::lnb_t& lnb, const devdb::fe_t& fe) {
-	ss::string<32> name;
-	auto lnb_can_be_used{false};
-	bool any_change{false};
-
-	for(auto& conn: lnb.connections) {
-		if(conn.card_mac_address != fe.card_mac_address) {
-			lnb_can_be_used |= conn.can_be_used;
-			continue;
-		}
-		name.clear();
-		auto valid_rf_input = fe.rf_inputs.contains(conn.rf_input);
-		auto card_no = valid_rf_input ? fe.card_no : -1;
-		if (card_no >=0) {
-			name.format("C{:d}#{:d} {:s}", card_no, conn.rf_input, fe.card_short_name);
-		} else {
-			name.format("C??#{:d} {:s}", conn.rf_input, fe.card_short_name);
-		}
-		assert (conn.card_mac_address == fe.card_mac_address);
-		bool changed = (conn.connection_name != name) ||(conn.card_no != card_no) ||
-			(conn.can_be_used != fe.can_be_used);
-		any_change |= changed;
-		lnb_can_be_used |= fe.can_be_used;
-		conn.can_be_used = fe.can_be_used;
-
-		if(!changed)
-			continue;
-		conn.connection_name = name;
-		conn.card_no = card_no;
-	}
-	any_change |= (lnb.can_be_used != lnb_can_be_used);
-	lnb.can_be_used = lnb_can_be_used;
-	if(!any_change)
-		return;
-	dtdebugf("Saving lnb_network: lnb_usals_pos={} cur_sat_pos={}\n", lnb.lnb_usals_pos, lnb.cur_sat_pos);
-	put_record(devdb_wtxn, lnb);
-}
-#endif
-
-#if 0
-/*
-	When an adapter changes name, update fields "name" and "adapter_no" in all related lnb's
- */
-void devdb::lnb::update_lnb_adapter_fields(db_txn& devdb_wtxn, const devdb::fe_t& fe) {
-	auto c = find_first<lnb_t>(devdb_wtxn);
-	for(auto lnb: c.range()) {
-		update_lnb_adapter_fields(devdb_wtxn, lnb, fe);
-	}
-}
-#endif
-
 
 /*
 	Set the can_be_used status on all lnbs and lnb connections depending on the
@@ -1537,11 +1537,7 @@ void devdb::lnb::update_lnbs(db_txn& devdb_wtxn, const devdb::fe_t* update_for_f
 				assert(fe.rf_inputs.contains(conn.rf_input));
 				assert (conn.card_mac_address == fe.card_mac_address);
 				auto card_no = fe.card_no;
-				if (card_no >=0) {
-					name.format("C{:d}#{:d} {:s}", card_no, conn.rf_input, fe.card_short_name);
-				} else {
-					name.format("C??#{:d} {:s}", conn.rf_input, fe.card_short_name);
-				}
+				name = make_connection_name(card_no, conn.rf_input, fe.card_short_name);
 				bool changed = (conn.connection_name != name) ||(conn.card_no != card_no) ||
 					(conn.can_be_used != fe.can_be_used);
 				any_change |= changed;
@@ -1549,11 +1545,7 @@ void devdb::lnb::update_lnbs(db_txn& devdb_wtxn, const devdb::fe_t* update_for_f
 				conn.connection_name = name;
 			} else if(!update_for_fe) {
 				//the connection cannot be used
-				if(conn.card_no >=0) {
-					name.format("C{:d}#?? {:06x}", conn.card_no, conn.card_mac_address);
-				} else {
-					name.format("C??#?? {:06x}", conn.card_mac_address);
-				}
+				name = make_connection_name(conn.card_no, -1, conn.card_mac_address);
 				auto can_be_used =  false;
 				bool changed = (conn.connection_name != name) || (conn.can_be_used != can_be_used);
 				any_change |= changed;

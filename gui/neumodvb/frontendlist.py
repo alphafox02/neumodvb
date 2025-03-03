@@ -43,7 +43,11 @@ def delsys_fn(x):
     vals = vals.difference(set(['AUTO']))
     return "/".join(vals)
 def rf_inputs_fn(x):
-    return " ".join(str(v) for v in x[1])
+    cable_nos=[c for c in x[0].cable_nos]
+    rf_ins=[r for r in x[0].rf_inputs]
+    if len(cable_nos) < len(rf_ins):
+        cable_nos = cable_nos + [-1] * (len(rf_ins) - len(cable_nos))
+    return " ".join(f'{r}:Ca{c}' for r,c in zip(rf_ins, cable_nos))
 
 def subscription_fn(x):
     fesub = x[0].sub
@@ -128,7 +132,7 @@ class FrontendTable(NeumoTable):
          CD(key='sub.rf_path.card_mac_address',  label='subscription', basic=True, dfn=subscription_fn,
             readonly=True, example='#0 10714.250H-255 BBC One London '),
          #CD(key='sub.subs',  label='fe use\ncount', basic=True, readonly=True, cfn=None, dfn= lambda x : len(x[1]) ),
-         CD(key='rf_inputs',  label='rf\ninputs', basic=True, dfn=rf_inputs_fn, readonly=True, example='1 '*6),
+         CD(key='rf_inputs',  label='rf\ninputs', basic=True, dfn=rf_inputs_fn, readonly=True, example='1:Ca10 '*4),
          #CD(key='rf_in',  label='RF#', basic=True, readonly=True),
          CD(key='card_mac_address',  label='CARD MAC', basic=True, no_combo=True, readonly=True,
             dfn=mac_fn, example=" AA:BB:CC:DD:EE:FF "),
@@ -139,7 +143,8 @@ class FrontendTable(NeumoTable):
          CD(key='supports.blindscan',  label='blind\n-scan', basic=True, dfn=bool_fn, readonly=True),
          CD(key='supports.spectrum_sweep',  label='spec\nsweep', basic=True, dfn=bool_fn, readonly=True),
          CD(key='supports.spectrum_fft',  label='spec\nfft', basic=True, dfn=bool_fn, readonly=True),
-         CD(key='delsys',  label='delsys', basic=True, dfn=delsys_fn, readonly=True, example='DVBT/'*6)
+         CD(key='delsys',  label='delsys', basic=True, dfn=delsys_fn, readonly=True, example='DVBT/'*6),
+         CD(key='card_address',  label='Bus', basic=True, example=" 0000:03:00.0 ")
         ]
 
     def __init__(self, parent, basic=False, *args, **kwds):
@@ -158,7 +163,7 @@ class FrontendTable(NeumoTable):
                                    field_matchers=matchers, match_data = match_data)
         self.screen = screen_if_t(screen, self.sort_order==2)
 
-    def __save_record__(self, txn, record):
+    def __save_record__(self, txn, record, old_record):
         dtdebug(f'saving {record.k.adapter_mac_address}')
         pydevdb.put_record(txn, record)
         return record

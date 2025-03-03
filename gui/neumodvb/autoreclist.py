@@ -81,7 +81,7 @@ class AutoRecTable(NeumoTable):
                                    field_matchers=matchers, match_data = match_data)
         self.screen = screen_if_t(screen, self.sort_order==2)
 
-    def __save_record__(self, txn, record):
+    def __save_record__(self, txn, record, old_record):
         pyrecdb.put_record(txn, record)
         return record
 

@@ -42,6 +42,13 @@ namespace devdb {
 		}
 	};
 
+	namespace cable {
+		inline void make_unique_if_template(db_txn& rtxn, cable_t& cable ) {
+			if(cable.cable_id<0)
+				cable.cable_id = devdb::make_unique_id(rtxn, cable);
+		}
+	};
+
 	namespace scan_command {
 		inline void make_unique_if_template(db_txn& wtxn, scan_command_t& scan_command) {
 			if(scan_command.id<0)

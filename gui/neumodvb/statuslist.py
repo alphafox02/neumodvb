@@ -108,7 +108,7 @@ class StatusTable(NeumoTable):
                                              field_matchers=matchers, match_data = match_data)
         self.screen = screen_if_t(screen, self.sort_order==2)
 
-    def __save_record__(self, txn, signal_stat):
+    def __save_record__(self, txn, signal_stat, old_record):
         pystatdb.put_record(txn, signal_stat)
         return lnb
 

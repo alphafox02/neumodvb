@@ -121,7 +121,7 @@ class LnbConnectionTable(NeumoTable):
         """
         self.screen = screen_if_t(lnbconnection_screen_t(self), self.sort_order==2)
 
-    def __save_record__(self, wtxn, record):
+    def __save_record__(self, wtxn, record, old_record):
         dtdebug(f'CONNECTIONS: {len(self.lnb.connections)}')
         changed = pydevdb.lnb.add_or_edit_connection(wtxn, self.lnb, record)
         if changed:

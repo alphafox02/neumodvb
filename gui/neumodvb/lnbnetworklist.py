@@ -164,7 +164,7 @@ class LnbNetworkTable(NeumoTable):
         opts =  receiver.get_options()
         return opts.usals_location
 
-    def __save_record__(self, txn, record):
+    def __save_record__(self, txn, record, old_record):
         dtdebug(f'NETWORKS: {len(self.lnb.networks)}')
         changed = pydevdb.lnb.add_or_edit_network(self.lnb, self.get_usals_location(), record)
         if changed:

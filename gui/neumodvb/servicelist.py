@@ -77,7 +77,7 @@ class ServiceTable(NeumoTable):
                          initial_sorted_column = initial_sorted_column, **kwds)
         self.app = wx.GetApp()
 
-    def __save_record__(self, txn, record):
+    def __save_record__(self, txn, record, old_record):
         pychdb.put_record(txn, record)
         return record
 

@@ -64,7 +64,7 @@ class ChgTable(NeumoTable):
                                    field_matchers=matchers, match_data = match_data)
         self.screen = screen_if_t(screen, self.sort_order==2)
 
-    def __save_record__(self, txn, record):
+    def __save_record__(self, txn, record, old_record):
         pychdb.chg.make_unique_if_template(txn, record)
         pychdb.put_record(txn, record) #this will overwrite any mux with given ts_id even if frequency is very wrong
         return record
