@@ -65,45 +65,10 @@ template<typename cursor_t, typename T> static int make_unique_id_helper(cursor_
 	return gap_start;
 }
 
-#if 0
-template <typename cursor_t> static int16_t make_unique_id(lnb_key_t key, cursor_t& c) {
-	key.lnb_id = 0;
-	int gap_start = 1; // start of a potential gap of unused extra_ids
-	for (const auto& lnb : c.range()) {
-		if (lnb.k.lnb_id > gap_start) {
-			/*we reached the first matching mux; assign next available lower  value to lnb.k.lnb_id
-				this can only fail if about 65535 lnbs
-				In that case the loop continues, just in case some of these  65535 muxes have been deleted in the mean time,
-				which has left gaps in numbering */
-			// easy case: just assign the next lower id
-			return lnb.k.lnb_id - 1;
-		} else {
-			// check for a gap in the numbers
-			gap_start = lnb.k.lnb_id + 1;
-			assert(gap_start > 0);
-		}
-	}
-
-	if (gap_start >= std::numeric_limits<decltype(key.lnb_id)>::max()) {
-		// all ids exhausted
-		// The following is very unlikely. We prefer to cause a result on a
-		// single mux rather than throwing an error
-		dterrorf("Overflow for extra_id");
-		assert(0);
-	}
-
-	// we reach here if this is the very first mux with this key
-	return gap_start;
-}
-#endif
 
 int16_t devdb::make_unique_id(db_txn& devdb_rtxn, const devdb::lnb_key_t& key) {
 	auto c = devdb::lnb_t::find_by_key(devdb_rtxn, key.dish_id, find_geq);
-#if 0
-	return ::make_unique_id(key, c);
-#else
 	return ::make_unique_id_helper<decltype(c), devdb::lnb_t>(c);
-#endif
 }
 
 int16_t devdb::make_unique_id(db_txn& devdb_rtxn, const devdb::scan_command_t& scan_command) {

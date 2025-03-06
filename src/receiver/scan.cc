@@ -949,7 +949,6 @@ scan_t::scan_next(db_txn& chdb_rtxn,
 
 	bool is_idle = 	scan_idle(scan_stats);
 	if(is_idle) {
-		auto now = steady_clock_t::now();
 		printf("scanning has gone idle\n");
 		scanner.start_idling();
 	} else {
