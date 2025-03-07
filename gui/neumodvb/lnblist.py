@@ -295,6 +295,9 @@ class LnbGridBase(NeumoGridBase):
     def CmdTune(self, evt):
         row = self.GetGridCursorRow()
         lnb = self.table.screen.record_at_row(row)
+        if not lnb.enabled:
+            ShowMessage(f' LNB {lnb} not enabled')
+            return
         network = get_current_network(lnb)
         if network is None:
             ShowMessage("No ref mux", "Cannot find a ref mux")
@@ -313,6 +316,10 @@ class LnbGridBase(NeumoGridBase):
 
     def CmdPositioner(self, event):
         dtdebug('CmdPositioner')
+        lnb = self.table.screen.record_at_row(row)
+        if not lnb.enabled:
+            ShowMessage(f' LNB {lnb} not enabled')
+            return
         self.OnPositioner(event)
 
     def OnPositioner(self, evt):
@@ -343,6 +350,9 @@ class LnbGridBase(NeumoGridBase):
         row = self.GetGridCursorRow()
         lnb = self.table.screen.record_at_row(row)
         dtdebug(f'Spectrum requested for lnb={lnb}')
+        if not lnb.enabled:
+            ShowMessage(f' LNB {lnb} not enabled')
+            return
         self.table.SaveModified()
         from neumodvb.spectrum_dialog import show_spectrum_dialog
         show_spectrum_dialog(self, lnb=lnb)
