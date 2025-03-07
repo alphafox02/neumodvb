@@ -299,10 +299,9 @@ class TuneMuxPanel(TuneMuxPanel_):
                 elif len(lnb.networks)>0:
                     sat_pos = lnb.networks[0].sat_pos
                 if sat_pos != None:
-                    sat_band = pydevdb.lnb.sat_band(lnb)
-                    sat = pychdb.sat.find_by_key(chdb_txn, lnb.networks[0].sat_pos, sat_band)
+                    sat_band = pydevdb.lnb.sat_band(lnb.k)
                     sat = pychdb.sat.sat()
-                    sat.sat_band = pydevdb.lnb.sat_band(lnb)
+                    sat.sat_band = sat_band
                     sat.sat_pos = sat_pos
                     chdb_wtxn = wx.GetApp().chdb.wtxn()
                     pychdb.put_record(chdb_wtxn, sat)

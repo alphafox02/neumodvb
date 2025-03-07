@@ -236,7 +236,7 @@ namespace devdb::lnb {
 		}
 	}
 
-	chdb::sat_band_t sat_band(const devdb::lnb_t& lnb);
+	chdb::sat_band_t sat_band(const devdb::lnb_key_t& lnb_key);
 }
 
 namespace devdb::fe {

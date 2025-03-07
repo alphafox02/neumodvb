@@ -99,7 +99,7 @@ static void export_lnb_extra(py::module& m) {
 		.def("lnb_frequency_range", &lnb::lnb_frequency_range,
 				 "Obtain min/mid/max frequency for this lnb",  py::arg("lnb"))
 		.def("sat_band", &lnb::sat_band,
-				 "Obtain sat_band for this lnb",  py::arg("lnb"))
+				 "Obtain sat_band for this lnb",  py::arg("lnb_key"))
 		;
 }
 

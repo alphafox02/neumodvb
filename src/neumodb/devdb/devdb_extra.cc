@@ -246,9 +246,9 @@ devdb::lnb_network_t* devdb::lnb::get_network(lnb_t& lnb, int16_t sat_pos) {
 
 
 
-chdb::sat_band_t devdb::lnb::sat_band(const devdb::lnb_t& lnb) {
+chdb::sat_band_t devdb::lnb::sat_band(const devdb::lnb_key_t& lnb_key) {
 	using namespace chdb;
-	switch (lnb.k.lnb_type) {
+	switch (lnb_key.lnb_type) {
 	case lnb_type_t::C:
 		return sat_band_t::C;
 	case lnb_type_t::WDB:

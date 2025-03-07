@@ -328,11 +328,12 @@ class SpectrumDialog(SpectrumDialog_):
         if spectrum.k.sat_pos != self.sat.sat_pos or \
            not lnb_matches_spectrum(self.lnb, spectrum):
             txn = wx.GetApp().chdb.rtxn()
-            sat = pychdb.sat.find_by_key(txn, spectrum.k.sat_pos)
+            rf_path = spectrum.k.rf_path
+            sat_band = pydevdb.lnb.sat_band(rf_path.lnb)
+            sat = pychdb.sat.find_by_key(txn, spectrum.k.sat_pos, sat_band)
             txn.abort()
             del txn
             txn = wx.GetApp().devdb.rtxn()
-            rf_path = spectrum.k.rf_path
             lnb = pydevdb.lnb.find_by_key(txn, rf_path.lnb)
             txn.abort()
             del txn

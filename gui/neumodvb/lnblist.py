@@ -316,6 +316,7 @@ class LnbGridBase(NeumoGridBase):
 
     def CmdPositioner(self, event):
         dtdebug('CmdPositioner')
+        row = self.GetGridCursorRow()
         lnb = self.table.screen.record_at_row(row)
         if not lnb.enabled:
             ShowMessage(f' LNB {lnb} not enabled')
