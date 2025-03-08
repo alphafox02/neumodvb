@@ -438,6 +438,12 @@ update_mux_ret_t chdb::update_mux(db_txn& wtxn, mux_t& mux_to_save, system_time_
 		auto tmp_key = mux_to_save.k;
 		tmp_key.mux_id = db_mux.k.mux_id;
 		auto key_matches = tmp_key == db_mux.k;
+		if(!key_matches)  {
+			dtdebugf("tmp_key={} db_mux.k={}", tmp_key, db_mux.k);
+			assert(std::abs(tmp_key.sat_pos - db_mux.k.sat_pos)<=sat_pos_tolerance);
+			tmp_key.sat_pos = db_mux.k.sat_pos;
+			key_matches = tmp_key == db_mux.k;
+		}
 		assert(key_matches);
 #else
 #endif
