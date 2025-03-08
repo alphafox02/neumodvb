@@ -479,7 +479,7 @@ update_mux_ret_t chdb::update_mux(db_txn& wtxn, mux_t& mux_to_save, system_time_
 			}
 		}
 
-		dtdebugf("Transponder {}: sat_pos={:d} => {:d}; mux_id={:d} => {:d}; stream_id={:d} => {:d}; t2mi_pid={:d} =< {:d}",
+		dtdebugf("Transponder {}: sat_pos={:d} => {:d}; mux_id={:d} => {:d}; stream_id={:d} => {:d}; t2mi_pid={:d} => {:d}",
 						 merged_mux,
 						 db_mux.k.sat_pos, merged_mux.k.sat_pos,
 						 db_mux.k.mux_id, merged_mux.k.mux_id,
