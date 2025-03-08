@@ -444,7 +444,7 @@ private:
 	int request_positioner_control(tuner_thread_t& tuner_thread, const devdb::rf_path_t& rf_path, const devdb::lnb_t& lnb,
 															 const subscription_options_t& tune_options);
 
-	std::tuple<int, int, int, double>
+	std::optional<std::tuple<int, int, int, double>>
 	get_positioner_move_stats(int16_t old_usals_pos, int16_t new_usals_pos, steady_time_t now) const;
 
 	int request_signal_info(cmdseq_t& cmdseq, signal_info_t& ret, bool get_constellation);

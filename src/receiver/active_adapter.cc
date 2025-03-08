@@ -351,8 +351,13 @@ void active_adapter_t::on_stable_pat() {
 	auto [end_time, usals_pos_start, usals_pos_end] = *e;
  	if(usals_pos_end == usals_pos_start)
 		return;
-	auto [ old_angle, new_angle, move_time_ms, speed ] =
+	auto ret =
 		fe->get_positioner_move_stats(usals_pos_start, usals_pos_end, end_time);
+	if(!ret) {
+		dtdebugf("positioner did not move");
+		return;
+	}
+	auto [ old_angle, new_angle, move_time_ms, speed ] = *ret;
 	if (std::abs(new_angle - old_angle) <10)
 		return;
 	auto pol = pmux->pol;

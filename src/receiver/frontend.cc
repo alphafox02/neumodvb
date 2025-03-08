@@ -808,18 +808,27 @@ fe_lock_status_t dvb_frontend_t::get_lock_status() {
 	return ret;
 }
 
-std::tuple<int, int, int, double>
+/*
+	returns empty if positioner did not move
+ */
+std::optional<std::tuple<int, int, int, double>>
 dvb_frontend_t::get_positioner_move_stats(int16_t old_usals_pos, int16_t new_usals_pos,
 																					steady_time_t end_time) const {
 	auto loc = this->get_usals_location();
 	auto start = ts.readAccess()->positioner_start_move_time;
-	assert(start);
+	if(!start) {
+		/*this can happen when lnb is declared to be on rotor, but no positioner move
+			command was sent and lnb has multiple networks (close in sat_pos)
+		*/
+		return {};
+	}
+
 	auto move_time_ = end_time - *start;
 	auto move_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(move_time_).count();
 	auto old_angle = devdb::lnb::sat_pos_to_angle(old_usals_pos, loc.usals_longitude, loc.usals_latitude);
 	auto new_angle = devdb::lnb::sat_pos_to_angle(new_usals_pos, loc.usals_longitude, loc.usals_latitude);
 	auto speed = std::abs(new_angle - old_angle)*10. /(double) move_time_ms;
-	return {old_angle, new_angle, move_time_ms, speed};
+	return std::tuple<int, int, int, double>{old_angle, new_angle, move_time_ms, speed};
 }
 
 void fe_state_t::set_lock_status(api_type_t api_type, fe_status_t fe_status) {
@@ -2257,7 +2266,6 @@ std::tuple<int,int> dvb_frontend_t::do_lnb_and_diseqc(int16_t sat_pos, chdb::sat
 	/*select the proper lnb band
 		22KHz: off = low band; on = high band
 	*/
-
 	fe_sec_tone_mode_t tone = (sat_sub_band == chdb::sat_sub_band_t::HIGH) ? SEC_TONE_ON : SEC_TONE_OFF;
 	if (this->sec_status.set_tone(fefd, tone)<0) {
 		return {-1, new_usals_pos};
