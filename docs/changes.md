@@ -1,5 +1,73 @@
 # Changes in neumoDVB #
 
+## Changes in version neumodvb-1.8 ##
+
+### New features ###
+* Support for unicable lnbs.
+* Alow fuzzy filtering by frequency in service list.
+* Added cable list.
+* Improved layout of frontend list.
+* Parse service name in pmt and use it when no sdt name is present.
+* Added t2mi to mux grid combos.
+* Display error when command is run on disabled lnb instead of silently failing.
+* Improve dishlist layout
+
+### Bug fixes ###
+* Confusion between chglist_filter_chg and chgmlist_filter_chg.
+* Peak_matching sometimes leads to muxes which cannot be tuned, resulting in unscannable peaks.
+* Add timeout mechanism to ensure blindscanner always ends.
+* Confusion between unique_ptr and shared_ptr.
+* Incorrect assertion due to confusion between 0.8W and 1.0W.
+* Positioner_move_time computed when positioner did not move.
+* Selecting satellite for lnb no longer working correctly.
+* Draw_mux no longer working due to matplotlib change.
+* Bug in deserialisation of vectors.
+* Avoid assertion on corrupt stream due to poor reception.
+* Deadlock when replying positive to add sat dialog.
+* Adding satellite causes python stack dump.
+* Race when stopping live channel.
+* Wait longer when new adapters appear due to module reloading, preventing assertion.
+* Changing rf_path has no effect in positioner dialog.
+* Incorrect snr and such displayed on live screen when more than one service is displayed.
+* Handle races between multiple demods attempting to send unicable commands.
+* Using the same lnb is treated as a conflict when lnb is on positioner.
+* Usals type not updated when selecting different lnb connection in positioner dialog.
+* New usals position sometimes not saved when pressing the "save network" button.
+* Avoid assertion when user configures lnb beyond a possible band.
+* Handle missing satellites when networks already exist.
+* Tuning to different mux leads to forgetting dish parameters in positioner_dialog.
+* Filter service list by DVB type not working properly.
+* Handle Sats with sat_band equal to UNKNOWN more gracefully.
+* Positioner commands not working while mux is tuned.
+* Incorrect assertion when pressing cancel during starting a scan.
+* Incorrect updating of connection names.
+* Incorrect subscription information for DVBC.
+* Incorrect display of 'Ku' in DVB-C and DVB-T status list
+* Handle cards that have no rf mux.
+
+### Internals and compilation ###
+* Remove submodule date.
+* Add supports.bbframes.
+* Prevent fmt from being installed system-wide.
+* Updated Ubuntu install instructions.
+* Replace some assertions with error messages.
+* Add dish name in debug output
+* Add rf_path logging.
+
+
+
+
+
+
+
+Regression: ref mux is not saved any more.
+-
+Probably fixes #4: python errors when filtering sat bands
+Bug: positioner control (moving dish to usals pos) no longer working
+Filtering screens based on frequency and symbol_rate now also shows muxes with small deviations.
+Bug: embedded_si_streams not cleared after tuning to t2mi and then to non-t2mi mux on same sat
+
+
 ## Changes in version neumodvb-1.7 ##
 
 * Support cards with multiple stid135 chips such as tbs6916.
