@@ -11,7 +11,7 @@ to a DiSEqC switch, which is possibly cascaded other DiSEqC switches and thus ca
 Using the `cable list` it is possible to rewire a cable to another RF input on the same or another card. neumoDVB will
 then adjust all LNB connections to reflect the new situation.
 
-![screenshot](images/cables.png)
+![screenshot](images/cablelist.png)
 
 The fields heave the following meaning
 
