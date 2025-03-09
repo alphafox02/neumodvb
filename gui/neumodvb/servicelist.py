@@ -81,43 +81,68 @@ class ServiceTable(NeumoTable):
         pychdb.put_record(txn, record)
         return record
 
-    def get_and_add_dvbs_filter_(self):
+    def get_and_add_dvbs_filter_and_relax_(self, add_dvbs_filter):
         """
         """
         match_data, matchers = self.get_filter_()
-        sat_pos_field_id = self.data_table.subfield_from_name("k.mux.sat_pos")
+        match_data2 = self.record_t()
+        matchers2 = pydevdb.field_matcher_t_vector()
+        added = False
+        freq_field_id = self.data_table.subfield_from_name("frequency")
         if matchers is None:
              matchers = pydevdb.field_matcher_t_vector()
              match_data =  self.record_t()
-        m = pydevdb.field_matcher.field_matcher(sat_pos_field_id, pydevdb.field_matcher.match_type.LT)
-        match_data.k.mux.sat_pos = pychdb.sat.sat_pos_dvbs
-        matchers.push_back(m)
-        return match_data, matchers
+        if add_dvbs_filter:
+            sat_pos_field_id = self.data_table.subfield_from_name("k.mux.sat_pos")
+            m = pydevdb.field_matcher.field_matcher(sat_pos_field_id, pydevdb.field_matcher.match_type.LT)
+            match_data.k.mux.sat_pos = pychdb.sat.sat_pos_dvbs
+            matchers.push_back(m)
+        if matchers is not None:
+            for m in matchers:
+                if m.field_id == freq_field_id:
+                    m.match_type = pydevdb.field_matcher.match_type.GEQ
+                    m2 = pydevdb.field_matcher.field_matcher(freq_field_id, pydevdb.field_matcher.match_type.LEQ)
+                    matchers2.push_back(m2)
+                    freq = match_data.frequency
+                    dtdebug(f"Relaxing filter frequency={freq}")
+                    match_data.frequency = freq-500
+                    match_data2.frequency = freq+500
+                    added =True
+
+        if added:
+            return match_data, matchers, match_data2, matchers2
+        else:
+            return match_data, matchers, None, None
 
     def screen_getter_xxx(self, txn, sort_field):
         if self.parent.restrict_to_sat:
             sat, service = self.parent.CurrentSatAndService()
             txn = self.db.rtxn()
-            if sat.sat_pos == pychdb.sat.sat_pos_dvbs:
-                match_data, matchers = self.get_and_add_dvbs_filter_()
+            add_dvbs_filter= sat.sat_pos == pychdb.sat.sat_pos_dvbs
+            match_data, matchers, match_data2, matchers2  =\
+                self.get_and_add_dvbs_filter_and_relax_(add_dvbs_filter)
+            if add_dvbs_filter: # list is not filtered by sat but to all dvbs services
                 screen = pychdb.service.screen(txn, sort_order=sort_field,
-                                               field_matchers=matchers, match_data = match_data)
+                                               field_matchers=matchers, match_data = match_data,
+                                               field_matchers2=matchers2, match_data2 = match_data2)
             else:
-                match_data, matchers = self.get_filter_()
                 ref = pychdb.service.service()
                 ref.k.mux.sat_pos = sat.sat_pos
                 screen = pychdb.service.screen(txn, sort_order=sort_field,
                                            key_prefix_type=pychdb.service.service_prefix.sat_pos,
                                            key_prefix_data=ref,
-                                           field_matchers=matchers, match_data = match_data)
+                                               field_matchers=matchers, match_data = match_data,
+                                               field_matchers2=matchers2, match_data2 = match_data2)
             txn.abort()
             del txn
         else:
-            match_data, matchers = self.get_filter_()
+            match_data, matchers, match_data2, matchers2  = \
+                self.get_and_add_dvbs_filter_and_relax_(add_dvbs_filter=False)
             sat = None
             service = None
             screen = pychdb.service.screen(txn, sort_order=sort_field,
-                                           field_matchers=matchers, match_data = match_data)
+                                           field_matchers=matchers, match_data = match_data,
+                                           field_matchers2=matchers2, match_data2 = match_data2)
         self.screen = screen_if_t(screen, self.sort_order==2)
 
     def __new_record__(self):
