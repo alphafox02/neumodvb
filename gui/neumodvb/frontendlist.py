@@ -42,7 +42,11 @@ def delsys_fn(x):
     vals= set([enum_to_str(xx).split('_')[0] for xx in x[1]])
     vals = vals.difference(set(['AUTO']))
     return "/".join(vals)
+
 def rf_inputs_fn(x):
+    return " ".join(str(v) for v in x[1])
+
+def rf_inputs_with_cablenos_fn(x):
     cable_nos=[c for c in x[0].cable_nos]
     rf_ins=[r for r in x[0].rf_inputs]
     if len(cable_nos) < len(rf_ins):
@@ -132,7 +136,7 @@ class FrontendTable(NeumoTable):
          CD(key='sub.rf_path.card_mac_address',  label='subscription', basic=True, dfn=subscription_fn,
             readonly=True, example='#0 10714.250H-255 BBC One London '),
          #CD(key='sub.subs',  label='fe use\ncount', basic=True, readonly=True, cfn=None, dfn= lambda x : len(x[1]) ),
-         CD(key='rf_inputs',  label='rf\ninputs', basic=True, dfn=rf_inputs_fn, readonly=True, example='1:Ca10 '*4),
+         CD(key='rf_inputs',  label='rf\ninputs', basic=True, dfn=rf_inputs_fn, readonly=True, example='1 '*6),
          #CD(key='rf_in',  label='RF#', basic=True, readonly=True),
          CD(key='card_mac_address',  label='CARD MAC', basic=True, no_combo=True, readonly=True,
             dfn=mac_fn, example=" AA:BB:CC:DD:EE:FF "),
