@@ -139,6 +139,8 @@ will bring back the GUI. Pressing `Ctrl-F` will enter full screen mode
 
 ### [Dish list](docs/dishes.md) ####
 
+### [Cable list](docs/cables.md) ####
+
 ### [Signal history](docs/signal_history.md) ###
 
 ### [Filtering lists](docs/lists.md) ###

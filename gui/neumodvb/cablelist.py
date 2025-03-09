@@ -48,7 +48,7 @@ class CableTable(NeumoTable):
     all_columns = \
         [CD(key='cable_id',  label='cable', basic=True, readonly=True),
             #following must be readonly, or change may be accidentally undone by positioner dialog
-         CD(key='cable_name',  label='name', basic=True, readonly=False),
+         CD(key='cable_name',  label='name', basic=True, readonly=False, example="Cable long name"),
          #following must be readonly, or change may be accidentally undone by positioner dialog
          CD(key='rf_input',  label='Card RF#in', basic=True, readonly=False, example="TBS 6909X C0#3 ",
             dfn=card_rf_input_dfn, sfn=card_rf_input_sfn),
