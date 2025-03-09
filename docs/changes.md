@@ -11,6 +11,7 @@
 * Added t2mi to mux grid combos.
 * Display error when command is run on disabled lnb instead of silently failing.
 * Improve dishlist layout
+* Filtering screens based on frequency and symbol_rate now also shows muxes with small deviations.
 
 ### Bug fixes ###
 * Confusion between chglist_filter_chg and chgmlist_filter_chg.
@@ -42,8 +43,12 @@
 * Incorrect assertion when pressing cancel during starting a scan.
 * Incorrect updating of connection names.
 * Incorrect subscription information for DVBC.
-* Incorrect display of 'Ku' in DVB-C and DVB-T status list
+* Incorrect display of 'Ku' in DVB-C and DVB-T status list.
 * Handle cards that have no rf mux.
+* Regression: ref mux is not saved any more.
+* Issue #4: python errors when filtering sat bands.
+* Positioner control (moving dish to usals pos) no longer working.
+* Embedded si_streams not cleared after tuning to t2mi and then to non-t2mi mux on same sat
 
 ### Internals and compilation ###
 * Remove submodule date.
@@ -53,19 +58,6 @@
 * Replace some assertions with error messages.
 * Add dish name in debug output
 * Add rf_path logging.
-
-
-
-
-
-
-
-Regression: ref mux is not saved any more.
--
-Probably fixes #4: python errors when filtering sat bands
-Bug: positioner control (moving dish to usals pos) no longer working
-Filtering screens based on frequency and symbol_rate now also shows muxes with small deviations.
-Bug: embedded_si_streams not cleared after tuning to t2mi and then to non-t2mi mux on same sat
 
 
 ## Changes in version neumodvb-1.7 ##
