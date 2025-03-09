@@ -1993,9 +1993,10 @@ active_si_stream_t::sdt_process_service(db_txn& wtxn, const chdb::service_t& ser
 		db_found = true;
 		auto ch = c.current();
 
-		if (service.name != ch.name) {
+		if (service.name != ch.name || !ch.name_from_sdt) {
 			ch.name = service.name;
 			changed = true;
+			ch.name_from_sdt = true;
 		}
 
 		if (ch.provider != service.provider) {
