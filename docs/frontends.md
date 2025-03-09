@@ -81,17 +81,18 @@ The columns are:
   from using a specific adapter, e.g., to keep it as much as possible available for other programs,
   then you can set other frontends to a higher priority.
 
-* `subscription`. When a adapter is in use, this column shows what it is used for. In the example, the
-  card is using its first RF connector (#0) to tune 10847V on satellite 28.2E using a Ku band LNB,
-  identified as LNB 1294.
+* `subscription`. When a adapter is in use, this column shows the services and muxes currently being decode.
+  In the example, adapter 8 on a TBS 6916 card is used for decoding 2 services via the cable connected to
+  RF input 0. Adapters 9 and 10 decode two more services using the same tuner, i.e., the one connected to RF input
+  0. This is possible because they all have the same polarisartion and frequency band. On the other  hand,
+  adapters 11 and 16 are using another LNB connected to RF input 1 to decode 2 more services.
+
+  Note that some of the services are used for multiple subscriptions, in this case to display them twice on
+  the screen (not very useful).
 
   Subscriptions apply only to neumoDVB, but it is possible to start the neumoDVB program more than once.
   In this case, subscriptions from all instances will be shown. Such usage has not been well tested and
   there is usually not much reason for it, but it should work.
-
-* `fe use_count`. When neumoDVB needs to tuned to multiple services on the same mux, it uses the same
-  adapter for all of them. This keeps as many as possible frontends and resources free for other uses.
-  The number indicates how many such subscriptions are active.
 
 * `rf inputs`. High end cards such as the TBS6909X have more demodulators/frontends (e.g., 8) than tuners
   (e.g., 4).  The tuners are each hard-wired to a specific RF input connector and can capture a
@@ -105,9 +106,12 @@ The columns are:
   0 and 3 for the first and second connector). Lower end cards do not have an RF mux. In that case
   the only available input will be "0", but there can be exceptions due to driver limitations.
 
-* `MAC`. MAC address of the adapter. This number is supposed to be unique and allows to distinguish
-  multiple cards of the same model in the system. Internally, neumoDVB uses this information to
-  identify the adapter, instead of the linux DVB adapter number.
+* `CARD MAC`. MAC address of the card. This number is supposed to be unique and allows to distinguish
+  multiple cards of the same model in the system.
+
+* `ADAP MAC`. MAC address of the adapter. This number is supposed to be unique and allows to distinguish
+  multiple cards of the same model and multiple adapters on this card. Internally, neumoDVB uses this
+  information to  identify the adapter, instead of the linux DVB adapter number.
 
   As explained above, that DVB-API adapter number can change when cards are removed from or
   added to the system. In such a case neumoDVB will not be confused because it only uses the adapter
@@ -117,9 +121,6 @@ The columns are:
   Some cards (e.g., test specimens) do not have a proper MAC address set, or some drivers
   do not provide this information correctly. In that case neumoDVB generates a fake MAC address,
   which unfortunately cannot be guaranteed to be stable between boots.
-
-* `Bus`. Identifies the linux USB or PCIe bus to which the card is connected for informational purposes only.
-  This will change if you move a card to a different PCIe or USB slot.
 
 * `present`. Shows if the adapter is currently in the system. Note that this information is
    dynamically updated as cards are connected or to or disconnected from the system or as drivers are loaded
@@ -140,5 +141,5 @@ The columns are:
 
 * `delsys`. Shows the delivery systems (DVB-S, DVB-S2, DVB-T...) supported by the adapter.
 
-The example shows a TBS 6909X card, which has 8 frontends, along with some other cards which
-are currently not in the system.
+* `Bus`. Identifies the linux USB or PCIe bus to which the card is connected for informational purposes only.
+  This will change if you move a card to a different PCIe or USB slot.
