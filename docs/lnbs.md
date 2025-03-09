@@ -1,4 +1,4 @@
-c# neumoDVB #
+# neumoDVB #
 ## Configuring LNBs ##
 
 The LNB configurations informs neumoDVB about your satellite equipment setup. neumoDVB allows for complicated
@@ -31,7 +31,7 @@ together on the same dish. The `dish` property provides that information.
 To add an LNB entry, visit the LNB screen by selecting `LNBs` in the list menu. This screen will still be empty.
 Selecting `New` from the `Edit` menu will add one line to the table, which you will then need to edit.
 
-![screenshot](images/lnb_list.png)
+![lnb list](images/lnb_list.png)
 
 You need to edit only the following fields  in simple setups: `USALS pos`, `networks` and `connections`.
 
@@ -45,29 +45,29 @@ You need to edit only the following fields  in simple setups: `USALS pos`, `netw
   control a rotor. The opposite is however not true: it is possible to indicate that the LNB is on a rotor,
   but without allowing the user to control the dish.
 
+* `lnb usals`: This is the satellite position pointed to by the central LNB on a rotating dish. It also equals the USALS
+    position used to control any USALS motor. For fixed LNBS, `USALS pos` is the location of the main network offered by the
+    LNB. For Instance, for an LNB capable of receiving 9.0E and 10.0E, this will either be 9.0E or 10.0E.
+
+    If your dish setup is imperfect, you may also need an USALS position different from the true satellite
+    location.
+
+    Using a "wrong" `USALS pos.` is also useful for other purposes. For instance, you could enter "10.0E"
+    as the USALS. pos. for both the satellites 9.0E  and 10.0E. The dish will then remain at 10.0E if you tune
+    to a service on 9.0E, reducing wear and tear if you switch
+    frequently between both satellites.
+
+    If you install an "offset LNB", by which we mean a second LNB not in the central position on a rotating dish,
+    then this satellite position is the position pointed to by the LNB and it will differ from the "USALS position",.
+    which is the satellite pointed to by the central LNB
+
+    Note that this field is read only on this screen. It is estimated from `USALS pos` which can be set in the `networks` field
+    or from the `positioner dialog`.
+
 * `Cur sat pos:` The actual satellite position the LNB points to. For an LNB on a positioner this will
   indicate the last known satellite to which the LNB points. This position may differ slightly from the true satellite
   position. For instance, for weaker satellites you may get a better signal by moving to a slightly "wrong" position if
   that reduces interference from a near by satellite.
-
-  If your dish setup is imperfect, you may also need an USALS position different from the true satellite
-  location.
-
-  Using a "wrong" `USALS pos.` is also useful for other purposes. For instance, you could enter "10.0E"
-  as the USALS. pos. for both the satellites 9.0E  and 10.0E. The dish will then remain at 10.0E if you tune
-  to a service on 9.0E, reducing wear and tear if you switch
-  frequently between both satellites.
-
-  If you install an "offset LNB", by which we mean a second LNB not in the central position on a rotating dish,
-  then this satellite position is the position pointed to by the LNB and it will differe from the "USALS position",.
-  which is the satellite pointed to by the central LNB
-
-  Note that this field is read only on this screen. It is estimated from `USALS pos` which can be set in the `networks` field
-  or from the `positioner dialog`.
-
-* `USALS pos:` This is the satellite position pointed to by the central LNB on a rotating dish. It also equals the USALS
-  position used to control any USALS motor. For fixed LNBS, `USALS pos` is the location of the main network offered by the
-  LNB. For Instance, for an LNB capable of receiving 9.0E and 10.0E, this will either be 9.0E or 10.0E.
 
 * `offset_angle`. If you install a second (offset) LNB on a rotating dish, it will point to a different satellite
    than the central LNB and hence the USALS position needs to be adjusted when pointing the offset LNB. This number is estimated
@@ -116,9 +116,14 @@ config/share/themes/Neumo/
   even in another USB slot, neumoDVB will detect its presence and allow the card to be used with the LNB, without any reconfiguration
   by the user. Also, these connections are stable against adapter renumbering.
 
-* `pol type`. HV for a regular linear LNB, LR for a regular circular one. The other options indicate LNBs with
+* `POL type`. HV for a regular linear LNB, LR for a regular circular one. The other options indicate LNBs with
   swapped polarizations. E.g., a linear LNB rotated by 90 degrees or a circular one in which the depolarizing
   plate is rotated by 90 degrees.
+
+* `unicable`. **Editable** This indicates which u`unicable` channels the  LNB is allowed to use when in `unicable` mode. In the
+  screenshot, the LNB can use four channels with ids 0,1,2,3. The parameters of these channels can be set using the `unicable channel dialog`,
+  which will appear after double-clicking while in `editing mode`. Typically one user (e.g., neumoDVB) uses one channel, but using multiple
+  channels allows receiving multiple muxes simultaneously over the same cable.
 
 * `prio`. **Editable** Change this to give preference to some LNBs when multiple ones can tune to the same
   satellite. LNBs with higher values are used preferentially. -1 means "default priority"
@@ -152,13 +157,36 @@ config/share/themes/Neumo/
 * `LOF high`. **Editable**  This sets the local oscillator frequency for the high band on the LNB. The
   special value  -1 means that this is set to the default value for this LNB type.
 
+* `pwrup time`. **Editable**  This sets the time needed after powering up the LNB before sending commands to
+  the LNB. This is mostly needed for unicable LNBs, which do not react to commands immediately after power up.
+
+### LNB unicable setup ###
+ ![unicable setup](images/lnb_unicable_channellist.png)
+
+This dialog is used to declare the unicable channels to be used by neumoDVB and their parameters. This should be selelected in accordance
+with the LNB's datasheet.
+
+* `CH id`. **Editable** The unicable channel id.
+
+* `pos`.  **Editable** The unicable switch position, which is needed in case multiple unicable LNBs are connected to the same cable.
+
+* `freq`.  **Editable** The unicable down link frequency in MHz.
+
+* `enabled`.  **Editable** Whether or not the channel is currently enabled. Disables channels are ignored.
+
+* `pin`.  **Editable** The pin code for this frequency, in case one is set. Otherwise leave it at -1.
+
+* `uc. vers`.  **Editable** The unicable protocol version to use.
+
+
 ### LNB networks setup ###
 
 The screenshot below shows the networks for a movable dish which is allowed to move to many different
 satellite positions. In this table, you can add new lines (`Edit - New`) or edit existing Lines (activate
 `Edit mode` if needed):
 
- ![screenshot](images/lnb_networks.png)
+ ![network setup](images/lnb_networks.png)
+
 
 The fields have the following meaning:
 
@@ -205,11 +233,11 @@ and was then connected to the cable currently attached to the TBS 5927.
 In this table, you can add new lines (`Edit - New`) or edit existing Lines (activate
 `Edit mode` if needed):
 
- ![screenshot](images/lnb_connections.png)
+ ![connections setup](images/lnb_connections.png)
 
 The fields have the following meaning:
 
-* `Card RF#in` **Editable** The card and RF input connector to which the LNB is connected. Select
+* `Card RF#in`. **Editable** The card and RF input connector to which the LNB is connected. Select
   it from the available choices in the popup list. Note that the same LNB can be connected to multiple
   cards or RF inputs (e.g., a Twin or Quad LNB). In this case, more than one entry should be created.
   Use the `New` button to add an extra connection.
@@ -219,7 +247,11 @@ The fields have the following meaning:
 * `prio`. **Editable** Change this to give preference to some LNBs when multiple ones can tune to the same
   satellite. LNBs with higher values are used preferentially.
 
-* `rotor`. **Editable** If you have a dish on a positioner, and the connection is wired to the rotor
+* `rf_coupler`. **Editable** A non-negative number indicates that the LNB is connected via a priority switch.
+  By setting the same switch id on all LNBs connected vua the same switch, neumoDVB knows about the resulting
+  constraints and can avoid activating conflicting connections.
+
+* `rotor control`. **Editable** If you have a dish on a positioner, and the connection is wired to the rotor
   set this to `ROTOR_MASTER_USALS` (recommended) or `ROTOR_MASTER_DIEQC12`. This will cause the
   receiver to start sending DiSEqC commands to rotate the dish.
   In this case, you also need define the list of networks (satellites) that the positioner is allowed to
@@ -232,10 +264,14 @@ The fields have the following meaning:
 
   The default value `FIXED DISH` should be used for LNBs not on a movable dish
 
-* `DiSEqC10`: the port number of the committed switch.  The first port on a switch is always named `0`, so for
+* `DiSEqC10`. **Editable** The port number of the committed switch.  The first port on a switch is always named `0`, so for
 DiSEqC10, the valid values are 0, 1, 2 and 3; -1 means "not present".
 
-* `DiSEqC11`: the port number for the uncommitted switch. Valid values are  0...15. -1 means "not present".
+* `DiSEqC11`. **Editable** The port number for the uncommitted switch. Valid values are  0...15. -1 means "not present".
+
+* `unicable`. **Editable** This should be checked if the LNB connection is configured in  **unicable mode.**
+  In unicable mode and LNB can send multiple narrow bands to the tuner, with each band typically containing one mux.
+  For proper functioning, this also requires configuration in the lnblist.
 
 If you use multiple "cascaded" switches, the order in which they are connected is also crucial for correct
 operation:
