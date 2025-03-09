@@ -84,16 +84,20 @@ class neumoMainFrame(mainFrame):
                              'dishlist', 'scancommandlist']
 
         self.panels = [ getattr(self, f'{n}_panel') for n in self.panel_names]
-        self.grids = [*filter(lambda xx: xx is not None,
-                            [ getattr(self, f'{n.removesuffix("list")}grid',None) for n in self.panel_names])]
-
-        for grid in self.grids:
+        self.grids = {}
+        for  n in self.panel_names:
+            name = f'{n.removesuffix("list")}'
+            gridname = f'{name}grid'
+            grid = getattr(self, gridname, None)
+            if grid is not None:
+                self.grids[name] = grid
             panel = grid
             while panel is not None:
                 parent = panel.Parent
                 if type(parent) == wx.Panel:
                     parent.main_grid = grid
                     panel = None
+
         self.service_sat_sel.window_for_computing_width=self.servicegrid
         self.dvbs_muxlist_sat_sel.window_for_computing_width = self.dvbs_muxgrid
 
@@ -145,6 +149,11 @@ class neumoMainFrame(mainFrame):
         accel_tbl = self.main_menubar.make_accels()
         self.SetAcceleratorTable(accel_tbl)
         return accel_tbl
+
+    def invalidate_grid(self, gridname):
+        #note that not every panel has a grid
+        grid = self.grids[gridname]
+        grid.invalidate_grid()
 
     def set_accelerators(self, on):
         if on:
@@ -244,7 +253,7 @@ class neumoMainFrame(mainFrame):
         menu_item= self.main_menubar.items['EditMode'][1]
         if menu_item.IsChecked() != edit_mode:
             menu_item.Check(edit_mode)
-        for grid in self.grids:
+        for k, grid in self.grids.items():
             grid.EnableEditing(self.edit_mode)
         self.main_menubar.edit_mode(edit_mode)
         #menu = event.GetEventObject()
@@ -736,8 +745,8 @@ class NeumoGui(wx.App):
             self.Inspect()
         self.frame.Show()
         return True
-
-
+    def invalidate_grid(self, grid):
+        self.frame.invalidate_grid(grid)
 
 if __name__ == "__main__":
     pyreceiver.set_process_name("neumodvb")
