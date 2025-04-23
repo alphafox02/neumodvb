@@ -100,14 +100,13 @@ at least the following packages are needed:
 sudo pip3 install mpl_scatter_density
 ```
 
-#### Ubuntu 23.10 ####
+#### Ubuntu 24.04 ####
 
-If you wish to install Ubuntu from scratch, then install it from
-`ubuntu-mate-23.10-desktop-amd64.iso` to ensure you have a decent starting point.
+Tested with DragonOS Nobel.
 
 Install the following packages for building and running neumoDVB:
 ```
-sudo apt install -y git  clang clang-16 clang-tools-16 clang-format python3-matplotlib mpv libmpv-dev python3-mpl-scatter-density cmake libboost-all-dev libgtk-3-dev libwxgtk3.2-dev libexif-dev liblog4cxx-dev python3-jinja2 python3-regex python3-sip-dev libconfig-dev libconfig++-dev libdvbcsa-dev freeglut3-dev python3-configobj  python3-cachetools python3-wxgtk-media4.0 python3-setuptools espeak build-essential libstdc++-14-dev
+sudo apt install -y git  clang clang-tools clang-format python3-matplotlib mpv libmpv-dev python3-mpl-scatter-density cmake libboost-all-dev libgtk-3-dev libwxgtk3.2-dev libexif-dev liblog4cxx-dev python3-jinja2 python3-regex python3-sip-dev libconfig-dev libconfig++-dev libdvbcsa-dev freeglut3-dev python3-configobj  python3-cachetools python3-wxgtk-media4.0 python3-setuptools espeak build-essential libstdc++-14-dev
 wget https://github.com/tsduck/tsduck/releases/download/v3.36-3528/tsduck_3.36-3528.ubuntu23_amd64.deb
 sudo apt install ./tsduck_3.36-3528.ubuntu23_amd64.deb
 ```
